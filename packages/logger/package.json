@@ -1,0 +1,8 @@
+{
+  "name": "@ai-hiring-platform/logger",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Centralized Logging Utilities",
+  "main": "src/index.ts",
+  "types": "src/index.ts"
+}

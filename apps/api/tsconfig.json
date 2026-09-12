@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": "../..",
+    "baseUrl": "./",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
+    "incremental": true,
+    "paths": {
+      "@ai-hiring-platform/auth": ["../../packages/auth/src/index.ts"],
+      "@ai-hiring-platform/ai": ["../../packages/ai/index.ts"],
+      "@ai-hiring-platform/validation": ["../../packages/validation/src/index.ts"],
+      "@ai-hiring-platform/types": ["../../packages/types/src/index.ts"],
+      "@ai-hiring-platform/logger": ["../../packages/logger/src/index.ts"],
+      "@ai-hiring-platform/database": ["../../packages/database/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}

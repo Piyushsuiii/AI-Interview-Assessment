@@ -1,0 +1,8 @@
+{
+  "name": "@ai-hiring-platform/events",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Event bus, websocket payloads, and messaging types",
+  "main": "index.ts",
+  "types": "index.ts"
+}

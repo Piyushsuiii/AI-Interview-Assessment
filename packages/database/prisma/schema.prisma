@@ -1,0 +1,924 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  HIRING_MANAGER
+  RECRUITER
+  INTERVIEWER
+  VIEWER
+}
+
+enum CompanySize {
+  SOLO
+  SMALL
+  MEDIUM
+  LARGE
+  ENTERPRISE
+}
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum SkillLevel {
+  NICE_TO_HAVE
+  REQUIRED
+  CRITICAL
+}
+
+enum CandidateStatus {
+  INVITED
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum AssessmentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QuestionType {
+  TECHNICAL
+  CODING
+  BEHAVIORAL
+  SYSTEM_DESIGN
+  SCENARIO
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum InterviewState {
+  CREATED
+  INVITED
+  STARTED
+  INTRODUCTION
+  TECHNICAL
+  FOLLOW_UP
+  CODING
+  SYSTEM_DESIGN
+  BEHAVIORAL
+  EVALUATION
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum EvaluationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum Recommendation {
+  STRONG_HIRE
+  HIRE
+  LEAN_HIRE
+  LEAN_NO_HIRE
+  NO_HIRE
+  NEEDS_REVIEW
+}
+
+enum SubmissionStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  TIMEOUT
+}
+
+enum IntegrityEventType {
+  TAB_SWITCH
+  PASTE
+  INACTIVITY
+  FACE_ABSENT
+  MULTIPLE_FACES
+  ANSWER_SIMILARITY
+  CODE_SIMILARITY
+}
+
+enum InterviewEventType {
+  INTERVIEW_STARTED
+  QUESTION_DISPLAYED
+  ANSWER_SUBMITTED
+  FOLLOWUP_GENERATED
+  SECTION_CHANGED
+  INTEGRITY_SIGNAL
+  EVALUATION_COMPLETED
+  INTERVIEW_COMPLETED
+}
+
+enum NotificationType {
+  CANDIDATE_INVITED
+  ASSESSMENT_PUBLISHED
+  INTERVIEW_COMPLETED
+  EVALUATION_COMPLETED
+  INTEGRITY_ALERT
+}
+
+enum BillingPlan {
+  STARTER
+  GROWTH
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  PAUSED
+}
+
+enum UsageMetric {
+  INTERVIEWS
+  AI_TOKENS
+}
+
+enum EntitlementKey {
+  MONTHLY_INTERVIEWS
+  MONTHLY_AI_TOKENS
+  TEAM_MEMBERS
+  ADVANCED_ANALYTICS
+}
+
+enum BillingEventStatus {
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String?
+  firstName       String?
+  lastName        String?
+  avatarUrl       String?
+  emailVerifiedAt DateTime?
+  isPlatformAdmin Boolean   @default(false)
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  memberships           OrganizationMember[]
+  sessions              Session[]
+  accounts              OAuthAccount[]
+  emailTokens           EmailVerificationToken[]
+  passwordTokens        PasswordResetToken[]
+  auditLogs             AuditLog[]
+  createdOrgs           Organization[]           @relation("OrgCreatedBy")
+  invitedMembers        OrganizationInvite[]     @relation("InviteCreatedBy")
+  createdJobs           Job[]                    @relation("JobCreatedBy")
+  aiUsageRecords        AiUsageRecord[]
+  overriddenEvaluations Evaluation[]             @relation("EvaluationOverriddenBy")
+  notifications         Notification[]
+}
+
+model OAuthAccount {
+  id                String   @id @default(uuid())
+  provider          String
+  providerAccountId String
+  userId            String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id               String    @id @default(uuid())
+  userId           String
+  refreshTokenHash String    @unique
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  logoUrl     String?
+  industry    String?
+  companySize CompanySize?
+  timezone    String       @default("UTC")
+  createdById String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  createdBy       User                      @relation("OrgCreatedBy", fields: [createdById], references: [id])
+  members         OrganizationMember[]
+  invites         OrganizationInvite[]
+  jobs            Job[]
+  assessments     Assessment[]
+  candidates      Candidate[]
+  interviews      Interview[]
+  questions       Question[]
+  auditLogs       AuditLog[]
+  aiUsageRecords  AiUsageRecord[]
+  evaluations     Evaluation[]
+  reports         Report[]
+  integrityEvents IntegrityEvent[]
+  notifications   Notification[]
+  subscription    Subscription?
+  usageCounters   UsageCounter[]
+  entitlements    OrganizationEntitlement[]
+
+  @@index([createdById])
+}
+
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  role           OrgRole  @default(RECRUITER)
+  userId         String
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+model OrganizationInvite {
+  id             String    @id @default(uuid())
+  email          String
+  role           OrgRole
+  tokenHash      String    @unique
+  organizationId String
+  invitedById    String
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("InviteCreatedBy", fields: [invitedById], references: [id])
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  action         String
+  userId         String?
+  organizationId String?
+  ipAddress      String?
+  userAgent      String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Job {
+  id               String    @id @default(uuid())
+  title            String
+  description      String?   @db.Text
+  department       String?
+  location         String?
+  employmentType   String?
+  experienceLevel  String?
+  salaryMin        Int?
+  salaryMax        Int?
+  salaryCurrency   String?   @db.VarChar(3)
+  responsibilities String[]  @default([])
+  status           JobStatus @default(DRAFT)
+  organizationId   String
+  createdById      String
+  archivedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("JobCreatedBy", fields: [createdById], references: [id])
+  skills       JobSkill[]
+  candidates   Candidate[]
+  assessments  Assessment[]
+
+  @@index([organizationId])
+  @@index([createdById])
+  @@index([organizationId, status, archivedAt])
+}
+
+model JobSkill {
+  id         String     @id @default(uuid())
+  name       String
+  importance SkillLevel @default(REQUIRED)
+  jobId      String
+  createdAt  DateTime   @default(now())
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+}
+
+model Assessment {
+  id              String           @id @default(uuid())
+  title           String
+  description     String?          @db.Text
+  durationMins    Int              @default(60)
+  status          AssessmentStatus @default(DRAFT)
+  organizationId  String
+  jobId           String?
+  activeVersionId String?          @unique
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  organization  Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job           Job?                @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  activeVersion AssessmentVersion?  @relation("ActiveAssessmentVersion", fields: [activeVersionId], references: [id], onDelete: SetNull)
+  versions      AssessmentVersion[] @relation("AssessmentVersions")
+  interviews    Interview[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([jobId])
+}
+
+model AssessmentVersion {
+  id           String    @id @default(uuid())
+  assessmentId String
+  version      Int
+  durationMins Int       @default(60)
+  instructions String?   @db.Text
+  totalScore   Float     @default(0)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assessment Assessment           @relation("AssessmentVersions", fields: [assessmentId], references: [id], onDelete: Cascade)
+  activeFor  Assessment?          @relation("ActiveAssessmentVersion")
+  questions  AssessmentQuestion[]
+
+  @@unique([assessmentId, version])
+  @@index([assessmentId])
+}
+
+model Candidate {
+  id             String          @id @default(uuid())
+  email          String
+  firstName      String?
+  lastName       String?
+  phone          String?
+  resumeUrl      String?
+  status         CandidateStatus @default(INVITED)
+  organizationId String
+  jobId          String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id])
+  job          Job              @relation(fields: [jobId], references: [id])
+  interviews   Interview[]
+  skills       CandidateSkill[]
+
+  @@unique([email, jobId])
+  @@index([organizationId])
+  @@index([jobId])
+  @@index([organizationId, status])
+}
+
+model Question {
+  id             String           @id @default(uuid())
+  organizationId String
+  type           QuestionType
+  status         AssessmentStatus @default(DRAFT)
+  archivedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions     QuestionVersion[]
+  interviews   InterviewQuestion[]
+
+  @@index([organizationId])
+  @@index([organizationId, status, archivedAt])
+}
+
+model QuestionVersion {
+  id             String     @id @default(uuid())
+  questionId     String
+  version        Int
+  prompt         String     @db.Text
+  difficulty     Difficulty
+  expectedAnswer String?    @db.Text
+  rubric         Json?
+  codingConfig   Json?
+  skills         String[]   @default([])
+  maxScore       Float
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  question            Question             @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  assessmentQuestions AssessmentQuestion[]
+  interviewQuestions  InterviewQuestion[]
+
+  @@unique([questionId, version])
+  @@index([questionId])
+}
+
+model AssessmentQuestion {
+  id                  String  @id @default(uuid())
+  assessmentVersionId String
+  questionVersionId   String
+  order               Int
+  weight              Float   @default(1)
+  required            Boolean @default(true)
+
+  assessmentVersion AssessmentVersion @relation(fields: [assessmentVersionId], references: [id], onDelete: Cascade)
+  questionVersion   QuestionVersion   @relation(fields: [questionVersionId], references: [id], onDelete: Restrict)
+
+  @@unique([assessmentVersionId, questionVersionId])
+  @@unique([assessmentVersionId, order])
+  @@index([questionVersionId])
+}
+
+model Interview {
+  id                  String         @id @default(uuid())
+  state               InterviewState @default(CREATED)
+  organizationId      String
+  candidateId         String
+  assessmentId        String
+  invitationTokenHash String?        @unique
+  invitationExpiresAt DateTime?
+  invitedAt           DateTime?
+  consentedAt         DateTime?
+  currentSection      String?
+  progress            Float          @default(0)
+  score               Float?
+  recommendation      String?
+  feedback            String?        @db.Text
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  organization            Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  candidate               Candidate                @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  assessment              Assessment               @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  session                 InterviewSession?
+  questions               InterviewQuestion[]
+  codeSubmissions         CodeSubmission[]
+  systemDesignSubmissions SystemDesignSubmission[]
+  evaluation              Evaluation?
+  report                  Report?
+  integrityEvents         IntegrityEvent[]
+  events                  InterviewEvent[]
+
+  @@index([candidateId])
+  @@index([organizationId])
+  @@index([assessmentId])
+  @@index([organizationId, state])
+}
+
+model InterviewSession {
+  id                 String         @id @default(uuid())
+  interviewId        String         @unique
+  startedAt          DateTime       @default(now())
+  completedAt        DateTime?
+  state              InterviewState @default(STARTED)
+  lastEventSequence  Int            @default(0)
+  reconnectTokenHash String         @unique
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId])
+  @@index([interviewId, state])
+}
+
+model InterviewQuestion {
+  id                 String       @id @default(uuid())
+  interviewId        String
+  questionId         String?
+  questionVersionId  String?
+  parentQuestionId   String?
+  type               QuestionType
+  prompt             String       @db.Text
+  order              Int
+  maxScore           Float
+  isAdaptive         Boolean      @default(false)
+  adaptationReason   String?      @db.Text
+  systemDesignPrompt Json?
+  createdAt          DateTime     @default(now())
+
+  interview              Interview               @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  question               Question?               @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  questionVersion        QuestionVersion?        @relation(fields: [questionVersionId], references: [id], onDelete: SetNull)
+  parentQuestion         InterviewQuestion?      @relation("AdaptiveQuestions", fields: [parentQuestionId], references: [id], onDelete: SetNull)
+  adaptiveQuestions      InterviewQuestion[]     @relation("AdaptiveQuestions")
+  answer                 Answer?
+  codingChallenge        CodingChallenge?
+  systemDesignSubmission SystemDesignSubmission?
+  evaluationEvidence     EvaluationEvidence[]
+
+  @@unique([interviewId, order])
+  @@index([interviewId])
+  @@index([questionId])
+  @@index([questionVersionId])
+  @@index([parentQuestionId])
+}
+
+model Answer {
+  id                  String    @id @default(uuid())
+  interviewQuestionId String    @unique
+  text                String?   @db.Text
+  startedAt           DateTime?
+  submittedAt         DateTime?
+  durationMs          Int?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  interviewQuestion  InterviewQuestion    @relation(fields: [interviewQuestionId], references: [id], onDelete: Cascade)
+  evaluationEvidence EvaluationEvidence[]
+}
+
+model CodingChallenge {
+  id                  String   @id @default(uuid())
+  interviewQuestionId String   @unique
+  title               String
+  description         String   @db.Text
+  starterCode         Json
+  allowedLanguages    String[] @default([])
+  publicTests         Json
+  hiddenTests         Json
+  timeLimitMs         Int
+  memoryLimitMb       Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  interviewQuestion InterviewQuestion @relation(fields: [interviewQuestionId], references: [id], onDelete: Cascade)
+  submissions       CodeSubmission[]
+}
+
+model CodeSubmission {
+  id          String           @id @default(uuid())
+  challengeId String
+  interviewId String
+  language    String
+  code        String           @db.Text
+  explanation String?          @db.Text
+  isFinal     Boolean          @default(false)
+  status      SubmissionStatus @default(QUEUED)
+  score       Float?
+  submittedAt DateTime         @default(now())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  challenge  CodingChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  interview  Interview       @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  executions CodeExecution[]
+
+  @@index([challengeId])
+  @@index([interviewId, submittedAt])
+  @@index([status])
+}
+
+model CodeExecution {
+  id           String           @id @default(uuid())
+  submissionId String
+  workerJobId  String?          @unique
+  status       SubmissionStatus @default(QUEUED)
+  stdout       String?          @db.Text
+  stderr       String?          @db.Text
+  exitCode     Int?
+  durationMs   Int?
+  passedTests  Int?
+  totalTests   Int?
+  error        String?          @db.Text
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  submission CodeSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@index([status, createdAt])
+}
+
+model SystemDesignSubmission {
+  id                  String   @id @default(uuid())
+  interviewQuestionId String   @unique
+  interviewId         String
+  diagram             Json
+  explanation         String?  @db.Text
+  submittedAt         DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  interviewQuestion InterviewQuestion @relation(fields: [interviewQuestionId], references: [id], onDelete: Cascade)
+  interview         Interview         @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId])
+}
+
+model Evaluation {
+  id                     String           @id @default(uuid())
+  interviewId            String           @unique
+  organizationId         String
+  status                 EvaluationStatus @default(PENDING)
+  overallScore           Float?
+  confidence             Float?
+  recommendation         Recommendation?
+  reasoningSummary       String           @db.Text
+  strengths              String[]         @default([])
+  weaknesses             String[]         @default([])
+  model                  String?
+  provider               String?
+  promptVersion          String?
+  error                  String?          @db.Text
+  overrideRecommendation Recommendation?
+  overrideReason         String?          @db.Text
+  overriddenById         String?
+  overriddenAt           DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  interview    Interview              @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  overriddenBy User?                  @relation("EvaluationOverriddenBy", fields: [overriddenById], references: [id], onDelete: SetNull)
+  competencies CompetencyEvaluation[]
+
+  @@index([organizationId, status])
+  @@index([overriddenById])
+  @@index([createdAt])
+}
+
+model CompetencyEvaluation {
+  id           String   @id @default(uuid())
+  evaluationId String
+  name         String
+  score        Float
+  confidence   Float
+  strengths    String[] @default([])
+  weaknesses   String[] @default([])
+  summary      String   @db.Text
+
+  evaluation Evaluation           @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  evidence   EvaluationEvidence[]
+
+  @@index([evaluationId])
+}
+
+model EvaluationEvidence {
+  id                     String   @id @default(uuid())
+  competencyEvaluationId String
+  interviewQuestionId    String?
+  answerId               String?
+  quote                  String   @db.Text
+  rationale              String   @db.Text
+  timestampMs            Int?
+  createdAt              DateTime @default(now())
+
+  competencyEvaluation CompetencyEvaluation @relation(fields: [competencyEvaluationId], references: [id], onDelete: Cascade)
+  interviewQuestion    InterviewQuestion?   @relation(fields: [interviewQuestionId], references: [id], onDelete: SetNull)
+  answer               Answer?              @relation(fields: [answerId], references: [id], onDelete: SetNull)
+
+  @@index([competencyEvaluationId])
+  @@index([interviewQuestionId])
+  @@index([answerId])
+}
+
+model CandidateSkill {
+  id          String   @id @default(uuid())
+  candidateId String
+  name        String
+  score       Float
+  confidence  Float
+  subskills   Json?
+  updatedAt   DateTime @updatedAt
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, name])
+  @@index([candidateId])
+}
+
+model Report {
+  id             String         @id @default(uuid())
+  interviewId    String         @unique
+  organizationId String
+  recommendation Recommendation
+  overallScore   Float
+  confidence     Float
+  snapshot       Json
+  generatedAt    DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  interview    Interview    @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, generatedAt])
+}
+
+model IntegrityEvent {
+  id             String             @id @default(uuid())
+  interviewId    String
+  organizationId String
+  type           IntegrityEventType
+  riskScore      Float
+  details        Json?
+  occurredAt     DateTime
+  createdAt      DateTime           @default(now())
+
+  interview    Interview    @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId, occurredAt])
+  @@index([organizationId, type, occurredAt])
+}
+
+model InterviewEvent {
+  id          String             @id @default(uuid())
+  interviewId String
+  sequence    Int
+  type        InterviewEventType
+  payload     Json?
+  occurredAt  DateTime
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@unique([interviewId, sequence])
+  @@index([interviewId, occurredAt])
+}
+
+model AiUsageRecord {
+  id             String   @id @default(uuid())
+  provider       String
+  model          String
+  requestId      String?
+  operation      String
+  latencyMs      Int?
+  inputTokens    Int?
+  outputTokens   Int?
+  totalTokens    Int?
+  cost           Decimal? @db.Decimal(12, 6)
+  status         String
+  error          String?  @db.Text
+  organizationId String?
+  userId         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([requestId])
+  @@index([provider, model])
+  @@index([operation, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
+model Notification {
+  id             String           @id @default(uuid())
+  type           NotificationType
+  title          String
+  message        String           @db.Text
+  href           String?
+  metadata       Json?
+  dedupeKey      String?
+  organizationId String
+  userId         String
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, dedupeKey])
+  @@index([organizationId, userId, createdAt])
+  @@index([organizationId, userId, readAt])
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  organizationId       String             @unique
+  plan                 BillingPlan        @default(STARTER)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model UsageCounter {
+  id             String      @id @default(uuid())
+  organizationId String
+  metric         UsageMetric
+  periodStart    DateTime
+  periodEnd      DateTime
+  quantity       BigInt      @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, metric, periodStart])
+  @@index([organizationId, periodEnd])
+}
+
+model OrganizationEntitlement {
+  id             String         @id @default(uuid())
+  organizationId String
+  key            EntitlementKey
+  enabled        Boolean?
+  limit          BigInt?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+}
+
+model BillingWebhookEvent {
+  id            String             @id @default(uuid())
+  stripeEventId String             @unique
+  type          String
+  status        BillingEventStatus @default(PROCESSING)
+  attempts      Int                @default(1)
+  error         String?            @db.Text
+  processedAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([status, updatedAt])
+}

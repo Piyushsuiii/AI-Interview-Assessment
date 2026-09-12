@@ -1,0 +1,27 @@
+{
+  "name": "@ai-hiring-platform/worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Background Jobs Worker Application",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/apps/worker/src/index.js",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "jest --config jest.config.js --runInBand"
+  },
+  "dependencies": {
+    "@ai-hiring-platform/events": "1.0.0",
+    "@prisma/client": "^6.14.0",
+    "bullmq": "^5.58.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.17.16",
+    "jest": "^29.7.0",
+    "prisma": "^6.14.0",
+    "ts-jest": "^29.2.5",
+    "tsx": "^4.20.4",
+    "typescript": "^5.7.3"
+  }
+}

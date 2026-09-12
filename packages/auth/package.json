@@ -1,0 +1,8 @@
+{
+  "name": "@ai-hiring-platform/auth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Authentication, RBAC, and permission utilities",
+  "main": "src/index.ts",
+  "types": "src/index.ts"
+}
