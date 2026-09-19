@@ -15,6 +15,11 @@ export function createCodeExecutionQueue(config: ConfigService): Queue<CodeExecu
       db: redisUrl.pathname.length > 1 ? Number(redisUrl.pathname.slice(1)) : undefined,
       ...(redisUrl.protocol === "rediss:" ? { tls: {} } : {}),
     },
-    defaultJobOptions: { attempts: 1, removeOnComplete: 500, removeOnFail: 2_000 },
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: { type: "exponential", delay: 2_000 },
+      removeOnComplete: { age: 24 * 60 * 60, count: 500 },
+      removeOnFail: { age: 7 * 24 * 60 * 60, count: 2_000 },
+    },
   });
 }

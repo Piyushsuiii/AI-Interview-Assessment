@@ -6,9 +6,10 @@ import { CandidateInvitationsController } from "./candidate-invitations.controll
 import { InterviewsModule } from "../interviews/interviews.module";
 import { CandidatesController } from "./candidates.controller";
 import { CandidatesService } from "./candidates.service";
+import { StorageModule } from "../storage/storage.module";
 
 @Module({
-  imports: [AuthModule, InterviewsModule],
+  imports: [AuthModule, InterviewsModule, StorageModule],
   controllers: [CandidatesController, CandidateInvitationsController],
   providers: [CandidatesService, OrgContextGuard, PermissionsGuard],
 })

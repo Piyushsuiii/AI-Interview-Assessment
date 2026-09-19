@@ -87,7 +87,13 @@ export type Candidate = {
   email: string;
   firstName?: string | null;
   lastName?: string | null;
+  phone?: string | null;
+  status?: string;
   resumeUrl?: string | null;
+  resumeFileName?: string | null;
+  resumeContentType?: string | null;
+  resumeSize?: number | null;
+  resumeUploadedAt?: string | null;
   jobId: string;
   job?: Pick<Job, "id" | "title"> | null;
   interviews?: Array<{
@@ -151,7 +157,7 @@ export async function apiRequest<T>(
   }
 
   const headers = new Headers(init.headers);
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   if (organizationId) headers.set("X-Organization-Id", organizationId);
 
   let response: Response;

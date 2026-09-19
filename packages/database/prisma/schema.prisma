@@ -429,6 +429,11 @@ model Candidate {
   lastName       String?
   phone          String?
   resumeUrl      String?
+  resumeObjectKey String?
+  resumeFileName String?
+  resumeContentType String?
+  resumeSize     Int?
+  resumeUploadedAt DateTime?
   status         CandidateStatus @default(INVITED)
   organizationId String
   jobId          String

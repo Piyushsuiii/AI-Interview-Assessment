@@ -20,6 +20,12 @@ export const envSchema = z.object({
   GEMINI_MODEL: z.string().min(1).default("gemini-2.0-flash"),
   AI_PRIMARY_PROVIDER: z.enum(["openai", "gemini"]).default("openai"),
   REDIS_URL: z.string().url().default("redis://localhost:6379"),
+  S3_ENDPOINT: z.union([z.literal(""), z.string().url()]).default(""),
+  S3_REGION: z.string().optional().default(""),
+  S3_ACCESS_KEY: z.string().optional().default(""),
+  S3_SECRET_KEY: z.string().optional().default(""),
+  S3_BUCKET_NAME: z.string().optional().default(""),
+  S3_FORCE_PATH_STYLE: z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
   STRIPE_SECRET_KEY: z.string().optional().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().optional().default(""),
   STRIPE_PRICE_STARTER: z.string().optional().default(""),
@@ -39,6 +45,14 @@ export const envSchema = z.object({
       code: z.ZodIssueCode.custom,
       message: "STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET must be configured together",
       path: ["STRIPE_SECRET_KEY"],
+    });
+  }
+  const storageValues = [env.S3_ENDPOINT, env.S3_REGION, env.S3_ACCESS_KEY, env.S3_SECRET_KEY, env.S3_BUCKET_NAME];
+  if (storageValues.some(Boolean) && storageValues.some((value) => !value)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "All S3 storage settings must be configured together",
+      path: ["S3_ENDPOINT"],
     });
   }
 });

@@ -25,6 +25,7 @@ import { HealthController } from "./health.controller";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
 import { envSchema } from "./common/env";
+import { StorageModule } from "./storage/storage.module";
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { envSchema } from "./common/env";
       throttlers: [{ name: "default", ttl: 60_000, limit: 100 }],
     }),
     PrismaModule,
+    StorageModule,
     AuditModule,
     MailModule,
     AuthModule,

@@ -10,6 +10,8 @@ import { CandidateInterviewOrchestratorService } from "../interviews/candidate-i
 import { advanceInterview, currentUnansweredQuestion, isQuestionAnswered, progressionQuestionInclude } from "../interviews/interview-progression";
 import { canConsumeUsage, incrementUsage } from "../billing/entitlements";
 import { notifyOrganization } from "../notifications/notification-events";
+import { StorageService } from "../storage/storage.service";
+import { randomUUID } from "node:crypto";
 
 type MutationContext = { userId: string; ipAddress?: string; userAgent?: string };
 
@@ -21,6 +23,7 @@ export class CandidatesService {
     private readonly mail: MailService,
     private readonly config: ConfigService,
     private readonly orchestrator: CandidateInterviewOrchestratorService,
+    private readonly storage: StorageService,
   ) {}
 
   async list(organizationId: string, query: CandidateListQuery) {
@@ -45,7 +48,7 @@ export class CandidatesService {
       }),
       this.prisma.candidate.count({ where }),
     ]);
-    return { items, pagination: { page: query.page, limit: query.limit, total, pages: Math.ceil(total / query.limit) } };
+    return { items: items.map((candidate) => this.withoutResumeKey(candidate)), pagination: { page: query.page, limit: query.limit, total, pages: Math.ceil(total / query.limit) } };
   }
 
   async get(organizationId: string, candidateId: string) {
@@ -57,13 +60,13 @@ export class CandidatesService {
       },
     });
     if (!candidate) this.notFound();
-    return {
+    return this.withoutResumeKey({
       ...candidate,
       interviews: candidate.interviews.map((interview) => ({
         ...interview,
         status: interview.state,
       })),
-    };
+    });
   }
 
   async create(organizationId: string, input: CreateCandidateInput, context: MutationContext) {
@@ -74,7 +77,7 @@ export class CandidatesService {
         return tx.candidate.create({ data: { organizationId, ...input } });
       });
       await this.audit.record({ action: "candidate.created", organizationId, ...context, metadata: { candidateId: candidate.id, jobId: input.jobId } });
-      return candidate;
+      return this.withoutResumeKey(candidate);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
         throw new ConflictException({ code: "CANDIDATE_ALREADY_EXISTS", message: "This candidate already exists for the job" });
@@ -90,7 +93,87 @@ export class CandidatesService {
       return tx.candidate.update({ where: { id: candidateId }, data: input });
     });
     await this.audit.record({ action: "candidate.updated", organizationId, ...context, metadata: { candidateId, fields: Object.keys(input) } });
-    return candidate;
+    return this.withoutResumeKey(candidate);
+  }
+
+  async uploadResume(
+    organizationId: string,
+    candidateId: string,
+    file: Express.Multer.File | undefined,
+    context: MutationContext,
+  ) {
+    if (!file) throw new BadRequestException({ code: "RESUME_REQUIRED", message: "A resume PDF is required" });
+    if (file.size > 10 * 1024 * 1024) throw new BadRequestException({ code: "RESUME_TOO_LARGE", message: "Resume must be 10 MB or smaller" });
+    if (file.mimetype !== "application/pdf" || !file.originalname.toLowerCase().endsWith(".pdf") || file.buffer.subarray(0, 5).toString() !== "%PDF-") {
+      throw new BadRequestException({ code: "RESUME_TYPE_UNSUPPORTED", message: "Only valid PDF resumes are supported" });
+    }
+    const existing = await this.prisma.candidate.findFirst({
+      where: { id: candidateId, organizationId },
+      select: { id: true, resumeObjectKey: true },
+    });
+    if (!existing) this.notFound();
+
+    const fileName = this.safeFileName(file.originalname);
+    const objectKey = `organizations/${organizationId}/candidates/${candidateId}/resumes/${randomUUID()}.pdf`;
+    await this.storage.putObject(objectKey, file.buffer, "application/pdf");
+    const uploadedAt = new Date();
+    try {
+      await this.prisma.candidate.update({
+        where: { id: candidateId },
+        data: {
+          resumeUrl: null,
+          resumeObjectKey: objectKey,
+          resumeFileName: fileName,
+          resumeContentType: "application/pdf",
+          resumeSize: file.size,
+          resumeUploadedAt: uploadedAt,
+        },
+      });
+    } catch (error) {
+      await this.storage.deleteObject(objectKey).catch(() => undefined);
+      throw error;
+    }
+    if (existing.resumeObjectKey) await this.storage.deleteObject(existing.resumeObjectKey).catch(() => undefined);
+    await this.audit.record({
+      action: "candidate.resume_uploaded",
+      organizationId,
+      ...context,
+      metadata: { candidateId, fileName, size: file.size, replaced: Boolean(existing.resumeObjectKey) },
+    });
+    return { fileName, contentType: "application/pdf", size: file.size, uploadedAt };
+  }
+
+  async getResumeUrl(organizationId: string, candidateId: string) {
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { id: candidateId, organizationId },
+      select: { resumeObjectKey: true, resumeFileName: true, resumeUrl: true },
+    });
+    if (!candidate) this.notFound();
+    if (candidate.resumeObjectKey) {
+      const expiresInSeconds = 300;
+      const url = await this.storage.getSignedDownloadUrl(candidate.resumeObjectKey, candidate.resumeFileName ?? "resume.pdf", expiresInSeconds);
+      return { url, expiresAt: new Date(Date.now() + expiresInSeconds * 1000), managed: true };
+    }
+    if (candidate.resumeUrl) return { url: candidate.resumeUrl, expiresAt: null, managed: false };
+    throw new NotFoundException({ code: "RESUME_NOT_FOUND", message: "Candidate resume not found" });
+  }
+
+  async deleteResume(organizationId: string, candidateId: string, context: MutationContext) {
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { id: candidateId, organizationId },
+      select: { resumeObjectKey: true, resumeUrl: true },
+    });
+    if (!candidate) this.notFound();
+    if (!candidate.resumeObjectKey && !candidate.resumeUrl) {
+      throw new NotFoundException({ code: "RESUME_NOT_FOUND", message: "Candidate resume not found" });
+    }
+    await this.prisma.candidate.update({
+      where: { id: candidateId },
+      data: { resumeUrl: null, resumeObjectKey: null, resumeFileName: null, resumeContentType: null, resumeSize: null, resumeUploadedAt: null },
+    });
+    if (candidate.resumeObjectKey) await this.storage.deleteObject(candidate.resumeObjectKey).catch(() => undefined);
+    await this.audit.record({ action: "candidate.resume_deleted", organizationId, ...context, metadata: { candidateId } });
+    return { deleted: true };
   }
 
   async invite(organizationId: string, candidateId: string, input: InviteCandidateInput, context: MutationContext) {
@@ -306,6 +389,17 @@ export class CandidatesService {
 
   private publicSession(session: { state: string; startedAt: Date; completedAt: Date | null; lastEventSequence: number }) {
     return { status: session.state, startedAt: session.startedAt, completedAt: session.completedAt, lastEventSequence: session.lastEventSequence };
+  }
+
+  private safeFileName(fileName: string) {
+    const baseName = fileName.split(/[\\/]/).pop() ?? "resume.pdf";
+    const cleaned = baseName.replace(/[\u0000-\u001f\u007f]/g, "_").slice(0, 180);
+    return cleaned || "resume.pdf";
+  }
+
+  private withoutResumeKey<T extends { resumeObjectKey?: string | null }>(candidate: T): Omit<T, "resumeObjectKey"> {
+    const { resumeObjectKey: _privateKey, ...safeCandidate } = candidate;
+    return safeCandidate;
   }
 
   private notFound(): never { throw new NotFoundException({ code: "CANDIDATE_NOT_FOUND", message: "Candidate not found" }); }

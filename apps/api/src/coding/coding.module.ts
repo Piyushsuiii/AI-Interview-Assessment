@@ -7,5 +7,6 @@ import { CodingService } from "./coding.service";
 @Module({
   controllers: [CodingController],
   providers: [CodingService, { provide: CODE_EXECUTION_QUEUE, inject: [ConfigService], useFactory: createCodeExecutionQueue }],
+  exports: [CODE_EXECUTION_QUEUE],
 })
 export class CodingModule {}

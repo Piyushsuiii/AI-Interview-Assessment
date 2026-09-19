@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Worker, type Job } from "bullmq";
 import type { CodeExecutionJob, CodeExecutionJobName, CodeExecutionQueueName } from "@ai-hiring-platform/events";
 import { processCodeExecution } from "./processor";
+import { parseWorkerConfig } from "./config";
 
 // Type-checked literals avoid requiring a TypeScript-source workspace package at runtime.
 const CODE_EXECUTION_QUEUE: CodeExecutionQueueName = "code-execution";
@@ -19,9 +20,7 @@ function redisConnection(urlValue: string) {
   };
 }
 
-const redisUrl = process.env.REDIS_URL;
-if (!redisUrl) throw new Error("REDIS_URL is required");
-if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
+const config = parseWorkerConfig(process.env);
 
 const prisma = new PrismaClient();
 const worker = new Worker<CodeExecutionJob>(
@@ -31,14 +30,18 @@ const worker = new Worker<CodeExecutionJob>(
     await processCodeExecution(prisma as PrismaClient & Record<string, any>, job.data);
   },
   {
-    connection: redisConnection(redisUrl),
-    concurrency: Math.max(1, Math.min(8, Number(process.env.WORKER_CONCURRENCY ?? 2))),
+    connection: redisConnection(config.redisUrl),
+    concurrency: config.concurrency,
     lockDuration: 60_000,
+    maxStalledCount: 2,
+    stalledInterval: 30_000,
   },
 );
 
 worker.on("error", (error: Error) => console.error("Code execution worker error", error));
 worker.on("failed", (job: Job<CodeExecutionJob> | undefined, error: Error) => console.error("Code execution job failed", { jobId: job?.id, error: error.message }));
+worker.on("stalled", (jobId: string) => console.warn("Code execution job stalled", { jobId }));
+worker.on("ready", () => console.info("Code execution worker ready", { concurrency: config.concurrency }));
 
 let shuttingDown = false;
 async function shutdown(signal: string) {
