@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { apiRequest, getErrorMessage } from "@/lib/api";
+import { apiRequest, getErrorMessage, type Session } from "@/lib/api";
 import { Input, SubmitButton } from "./ui";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
@@ -31,6 +31,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       : { firstName: formData.get("firstName"), lastName: formData.get("lastName"), organizationName: formData.get("organizationName"), email: formData.get("email"), password };
     try {
       await apiRequest(isLogin ? "/auth/login" : "/auth/signup", { method: "POST", body: JSON.stringify(body) });
+      await apiRequest<Session>("/auth/me");
       router.replace(next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
       router.refresh();
     } catch (requestError) {

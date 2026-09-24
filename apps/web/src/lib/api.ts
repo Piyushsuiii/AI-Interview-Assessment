@@ -146,6 +146,21 @@ export class ApiError extends Error {
 }
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+let refreshPromise: Promise<boolean> | null = null;
+
+async function refreshSession() {
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+    })
+      .then((response) => response.ok)
+      .catch(() => false)
+      .finally(() => { refreshPromise = null; });
+  }
+  return refreshPromise;
+}
 
 export async function apiRequest<T>(
   path: string,
@@ -160,14 +175,20 @@ export async function apiRequest<T>(
   if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   if (organizationId) headers.set("X-Organization-Id", organizationId);
 
+  const send = () => fetch(`${API_URL}${path}`, {
+    ...init,
+    headers,
+    credentials: "include",
+    cache: "no-store",
+  });
+
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
-      ...init,
-      headers,
-      credentials: "include",
-      cache: "no-store",
-    });
+    response = await send();
+    const protectedRequest = path === "/auth/me" || path.startsWith("/organizations/");
+    if (response.status === 401 && protectedRequest && await refreshSession()) {
+      response = await send();
+    }
   } catch {
     throw new ApiError("Unable to reach the API. Check the service and try again.", 0, "NETWORK_ERROR");
   }
