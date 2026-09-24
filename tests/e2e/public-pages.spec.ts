@@ -19,3 +19,11 @@ test("login page provides accessible authentication controls", async ({ page }) 
   await expect(page.getByRole("button", { name: "Enter workspace" })).toBeEnabled();
   await expect(page.getByRole("link", { name: "Continue with Google" })).toHaveAttribute("href", /\/auth\/google$/);
 });
+
+test("candidate portal has a separate passwordless entry point", async ({ page }) => {
+  await page.goto("/candidate/login");
+  await expect(page.getByRole("heading", { name: "Your application desk" })).toBeVisible();
+  await expect(page.getByLabel("Application email")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Send secure link/ })).toBeEnabled();
+  await expect(page.getByRole("link", { name: "Recruiter sign in" })).toHaveAttribute("href", "/login");
+});

@@ -76,4 +76,13 @@ export class MailService {
       html: `<p>Start your interview:</p><p><a href="${invitationUrl}">${invitationUrl}</a></p>`,
     });
   }
+
+  async sendCandidateMagicLink(to: string, url: string) {
+    await this.send({
+      to,
+      subject: "Sign in to your candidate portal",
+      text: `Sign in to your candidate portal: ${url}`,
+      html: `<p>Use this secure link to sign in to your candidate portal:</p><p><a href="${url}">Open candidate portal</a></p><p>This link expires in 15 minutes and can only be used once.</p>`,
+    });
+  }
 }

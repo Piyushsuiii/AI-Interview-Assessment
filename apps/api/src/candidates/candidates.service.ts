@@ -74,7 +74,8 @@ export class CandidatesService {
       const candidate = await this.prisma.$transaction(async (tx) => {
         const job = await tx.job.findFirst({ where: { id: input.jobId, organizationId, archivedAt: null }, select: { id: true } });
         if (!job) throw new BadRequestException({ code: "JOB_NOT_FOUND", message: "Job not found" });
-        return tx.candidate.create({ data: { organizationId, ...input } });
+        const account = await tx.candidateAccount.findFirst({ where: { email: input.email, emailVerifiedAt: { not: null }, disabledAt: null }, select: { id: true } });
+        return tx.candidate.create({ data: { organizationId, ...input, candidateAccountId: account?.id, claimedAt: account ? new Date() : undefined } });
       });
       await this.audit.record({ action: "candidate.created", organizationId, ...context, metadata: { candidateId: candidate.id, jobId: input.jobId } });
       return this.withoutResumeKey(candidate);
@@ -90,7 +91,16 @@ export class CandidatesService {
     const candidate = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.candidate.findFirst({ where: { id: candidateId, organizationId }, select: { id: true } });
       if (!existing) this.notFound();
-      return tx.candidate.update({ where: { id: candidateId }, data: input });
+      const account = input.email
+        ? await tx.candidateAccount.findFirst({ where: { email: input.email, emailVerifiedAt: { not: null }, disabledAt: null }, select: { id: true } })
+        : undefined;
+      return tx.candidate.update({
+        where: { id: candidateId },
+        data: {
+          ...input,
+          ...(input.email ? { candidateAccountId: account?.id ?? null, claimedAt: account ? new Date() : null } : {}),
+        },
+      });
     });
     await this.audit.record({ action: "candidate.updated", organizationId, ...context, metadata: { candidateId, fields: Object.keys(input) } });
     return this.withoutResumeKey(candidate);

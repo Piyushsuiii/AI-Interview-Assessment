@@ -169,6 +169,18 @@ enum BillingEventStatus {
   FAILED
 }
 
+enum CandidatePrivacyRequestType {
+  EXPORT
+  DELETION
+}
+
+enum CandidatePrivacyRequestStatus {
+  REQUESTED
+  IN_REVIEW
+  COMPLETED
+  REJECTED
+}
+
 model User {
   id              String    @id @default(uuid())
   email           String    @unique
@@ -437,6 +449,8 @@ model Candidate {
   status         CandidateStatus @default(INVITED)
   organizationId String
   jobId          String
+  candidateAccountId String?
+  claimedAt      DateTime?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -444,11 +458,75 @@ model Candidate {
   job          Job              @relation(fields: [jobId], references: [id])
   interviews   Interview[]
   skills       CandidateSkill[]
+  candidateAccount CandidateAccount? @relation(fields: [candidateAccountId], references: [id], onDelete: SetNull)
 
   @@unique([email, jobId])
   @@index([organizationId])
   @@index([jobId])
   @@index([organizationId, status])
+  @@index([candidateAccountId])
+}
+
+model CandidateAccount {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  firstName        String?
+  lastName         String?
+  phone            String?
+  emailVerifiedAt  DateTime?
+  privacyConsentAt DateTime?
+  lastLoginAt      DateTime?
+  disabledAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  candidates      Candidate[]
+  sessions        CandidateSession[]
+  magicLinks      CandidateMagicLink[]
+  privacyRequests CandidatePrivacyRequest[]
+}
+
+model CandidateSession {
+  id                 String    @id @default(uuid())
+  candidateAccountId String
+  refreshTokenHash   String    @unique
+  userAgent          String?
+  ipAddress          String?
+  expiresAt          DateTime
+  revokedAt          DateTime?
+  createdAt          DateTime  @default(now())
+
+  candidateAccount CandidateAccount @relation(fields: [candidateAccountId], references: [id], onDelete: Cascade)
+
+  @@index([candidateAccountId])
+}
+
+model CandidateMagicLink {
+  id                 String    @id @default(uuid())
+  candidateAccountId String
+  tokenHash          String    @unique
+  expiresAt          DateTime
+  usedAt             DateTime?
+  createdAt          DateTime  @default(now())
+
+  candidateAccount CandidateAccount @relation(fields: [candidateAccountId], references: [id], onDelete: Cascade)
+
+  @@index([candidateAccountId, expiresAt])
+}
+
+model CandidatePrivacyRequest {
+  id                 String                        @id @default(uuid())
+  candidateAccountId String
+  type               CandidatePrivacyRequestType
+  status             CandidatePrivacyRequestStatus @default(REQUESTED)
+  requestedAt        DateTime                      @default(now())
+  resolvedAt         DateTime?
+  resolution         String?
+
+  candidateAccount CandidateAccount @relation(fields: [candidateAccountId], references: [id], onDelete: Cascade)
+
+  @@index([candidateAccountId, requestedAt])
+  @@index([candidateAccountId, type, status])
 }
 
 model Question {

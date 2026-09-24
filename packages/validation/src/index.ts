@@ -40,6 +40,21 @@ export const verifyEmailSchema = z.object({
   token: z.string().min(20).max(500),
 });
 
+export const candidateMagicLinkRequestSchema = z.object({
+  email: z.string().email().max(255).transform((value) => value.toLowerCase().trim()),
+});
+
+export const candidateMagicLinkVerifySchema = z.object({
+  token: z.string().regex(/^[a-f0-9]{64}$/),
+});
+
+export const updateCandidateProfileSchema = z.object({
+  firstName: z.string().trim().min(1).max(80).nullable().optional(),
+  lastName: z.string().trim().min(1).max(80).nullable().optional(),
+  phone: z.string().trim().min(3).max(32).nullable().optional(),
+  privacyConsent: z.literal(true).optional(),
+}).refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
+
 export const slugSchema = z
   .string()
   .trim()
@@ -310,6 +325,9 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type CandidateMagicLinkRequestInput = z.infer<typeof candidateMagicLinkRequestSchema>;
+export type CandidateMagicLinkVerifyInput = z.infer<typeof candidateMagicLinkVerifySchema>;
+export type UpdateCandidateProfileInput = z.infer<typeof updateCandidateProfileSchema>;
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
 export type CreateJobInput = z.infer<typeof createJobSchema>;

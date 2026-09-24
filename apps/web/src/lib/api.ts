@@ -32,6 +32,33 @@ export type Session = {
   organizations: Organization[];
 };
 
+export type CandidateAccount = {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  emailVerifiedAt: string | null;
+  privacyConsentAt: string | null;
+  createdAt: string;
+};
+
+export type CandidateApplication = {
+  id: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  resumeFileName: string | null;
+  organization: { id: string; name: string };
+  job: { id: string; title: string; department: string | null; location: string | null; employmentType: string | null };
+  interviews: Array<{ id: string; state: string; startedAt: string | null; completedAt: string | null; invitationExpiresAt: string | null; updatedAt: string }>;
+};
+
+export type CandidateDashboard = {
+  counts: { applications: number; pendingInterviews: number; completedInterviews: number };
+  applications: CandidateApplication[];
+};
+
 export type Notification = {
   id: string;
   type: "CANDIDATE_INVITED" | "ASSESSMENT_PUBLISHED" | "INTERVIEW_COMPLETED" | "EVALUATION_COMPLETED" | "INTEGRITY_ALERT";
@@ -147,6 +174,7 @@ export class ApiError extends Error {
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 let refreshPromise: Promise<boolean> | null = null;
+let candidateRefreshPromise: Promise<boolean> | null = null;
 
 async function refreshSession() {
   if (!refreshPromise) {
@@ -202,6 +230,37 @@ export async function apiRequest<T>(
     );
   }
 
+  return (payload && "data" in payload ? payload.data : payload) as T;
+}
+
+async function refreshCandidateSession() {
+  if (!candidateRefreshPromise) {
+    candidateRefreshPromise = fetch(`${API_URL}/candidate/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+    }).then((response) => response.ok).catch(() => false).finally(() => { candidateRefreshPromise = null; });
+  }
+  return candidateRefreshPromise;
+}
+
+export async function candidateApiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  if (!API_URL) throw new ApiError("NEXT_PUBLIC_API_URL is not configured.", 0, "API_URL_MISSING");
+  const headers = new Headers(init.headers);
+  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  const send = () => fetch(`${API_URL}${path}`, { ...init, headers, credentials: "include", cache: "no-store" });
+  let response: Response;
+  try {
+    response = await send();
+    const protectedRequest = path === "/candidate/auth/me" || path.startsWith("/candidate/portal/");
+    if (response.status === 401 && protectedRequest && await refreshCandidateSession()) response = await send();
+  } catch {
+    throw new ApiError("Unable to reach the API. Check the service and try again.", 0, "NETWORK_ERROR");
+  }
+  const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
+  if (!response.ok || payload?.success === false) {
+    throw new ApiError(payload?.error?.message ?? payload?.message ?? "The request could not be completed.", response.status, payload?.error?.code);
+  }
   return (payload && "data" in payload ? payload.data : payload) as T;
 }
 

@@ -26,6 +26,8 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
 import { envSchema } from "./common/env";
 import { StorageModule } from "./storage/storage.module";
+import { CandidateAuthModule } from "./candidate-auth/candidate-auth.module";
+import { CandidatePortalModule } from "./candidate-portal/candidate-portal.module";
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { StorageModule } from "./storage/storage.module";
     }),
     PrismaModule,
     StorageModule,
+    CandidateAuthModule,
+    CandidatePortalModule,
     AuditModule,
     MailModule,
     AuthModule,
