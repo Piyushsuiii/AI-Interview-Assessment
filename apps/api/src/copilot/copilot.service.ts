@@ -4,6 +4,7 @@ import type { CopilotQueryInput } from "@ai-hiring-platform/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { createIntelligenceGateway, intelligenceDb, recordAiUsage } from "../evaluations/intelligence.types";
 import { candidateComparisonSchema, candidateComparisonVariables, ReportsService } from "../reports/reports.service";
+import { preferredProviderFor } from "../ai/ai-routing";
 
 @Injectable()
 export class CopilotService {
@@ -35,6 +36,7 @@ export class CopilotService {
           prompt: "candidate.comparison",
           variables: candidateComparisonVariables(`copilot:${input.tool}:${organizationId}`, records),
           schema: candidateComparisonSchema,
+          preferredProvider: preferredProviderFor(this.config, "reasoning"),
         });
         await recordAiUsage(this.prisma, organizationId, `copilot.${input.tool}`, result.metadata.requestId, result.metadata.attempts, userId);
         if (result.data.roleId !== `copilot:${input.tool}:${organizationId}`) {

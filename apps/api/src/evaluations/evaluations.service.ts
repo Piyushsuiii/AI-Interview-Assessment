@@ -5,6 +5,7 @@ import type { EvaluateInterviewInput, OverrideEvaluationInput } from "@ai-hiring
 import { PrismaService } from "../prisma/prisma.service";
 import { createIntelligenceGateway, intelligenceDb, recordAiUsage } from "./intelligence.types";
 import { notifyOrganization } from "../notifications/notification-events";
+import { preferredProviderFor } from "../ai/ai-routing";
 
 const evaluationAiSchema = z.object({
   interviewId: z.string().min(1),
@@ -140,6 +141,7 @@ export class EvaluationsService {
         prompt: "interviewer.evaluation",
         variables: promptInput.variables,
         schema: evaluationAiSchema,
+        preferredProvider: preferredProviderFor(this.config, "reasoning"),
       });
       await recordAiUsage(this.prisma, organizationId, "interviewer.evaluation", result.metadata.requestId, result.metadata.attempts, userId);
       output = this.toEvaluationOutput(result.data, promptInput, context.questions);

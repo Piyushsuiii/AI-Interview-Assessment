@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { CompareCandidatesInput } from "@ai-hiring-platform/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { createIntelligenceGateway, intelligenceDb, recordAiUsage } from "../evaluations/intelligence.types";
+import { preferredProviderFor } from "../ai/ai-routing";
 
 export const candidateComparisonSchema = z.object({
   roleId: z.string().min(1),
@@ -99,6 +100,7 @@ export class ReportsService {
           prompt: "candidate.comparison",
           variables: candidateComparisonVariables(`organization:${organizationId}`, records),
           schema: candidateComparisonSchema,
+          preferredProvider: preferredProviderFor(this.config, "reasoning"),
         });
         await recordAiUsage(this.prisma, organizationId, "candidate.comparison", result.metadata.requestId, result.metadata.attempts, userId);
         if (result.data.roleId !== `organization:${organizationId}`) {

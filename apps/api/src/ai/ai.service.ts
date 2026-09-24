@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { createAiGateway, type AiAttemptMetadata, type ProviderName } from "@ai-hiring-platform/ai";
 import { z } from "zod";
 import { PrismaService } from "../prisma/prisma.service";
+import { preferredProviderFor } from "./ai-routing";
 
 const jobAnalysisSchema = z.object({
   summary: z.string().min(1),
@@ -44,8 +45,8 @@ export class AiService {
     const gateway = createAiGateway({
       fetch,
       providers: {
-        openai: openaiKey ? { apiKey: openaiKey, model: this.config.get("OPENAI_MODEL") ?? "gpt-4o-mini" } : undefined,
-        gemini: geminiKey ? { apiKey: geminiKey, model: this.config.get("GEMINI_MODEL") ?? "gemini-2.0-flash" } : undefined,
+        openai: openaiKey ? { apiKey: openaiKey, model: this.config.get("OPENAI_MODEL") ?? "gpt-5.6-sol" } : undefined,
+        gemini: geminiKey ? { apiKey: geminiKey, model: this.config.get("GEMINI_MODEL") ?? "gemini-3.6-flash" } : undefined,
       },
       routing: { preferred, fallback },
       defaultTimeoutMs: 30_000,
@@ -58,6 +59,7 @@ export class AiService {
         criteria: "Identify competencies and produce an evidence-oriented interview plan.",
       },
       schema: jobAnalysisSchema,
+      preferredProvider: preferredProviderFor(this.config, "fast"),
     });
     await Promise.all(result.metadata.attempts.map((attempt) =>
       this.recordUsage(organizationId, userId, result.metadata.requestId, attempt),

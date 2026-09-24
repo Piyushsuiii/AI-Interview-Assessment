@@ -60,6 +60,7 @@ export interface AiRequest<K extends PromptName, T> {
   requestId?: string;
   timeoutMs?: number;
   signal?: AbortSignal;
+  preferredProvider?: ProviderName;
 }
 
 export interface AiAttemptMetadata {

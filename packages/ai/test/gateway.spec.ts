@@ -122,6 +122,34 @@ describe("AI gateway", () => {
     expect(response.metadata.attempts[0]?.errorCode).toBe("SCHEMA_VALIDATION_FAILED");
   });
 
+  it("supports task-specific provider preference while preserving fallback", async () => {
+    const calls: string[] = [];
+    const fetchMock: FetchLike = async (url) => {
+      calls.push(url.includes("googleapis") ? "gemini" : "openai");
+      return jsonResponse({
+        candidates: [{ content: { parts: [{ text: '{"title":"Fast","score":8}' }] } }],
+      });
+    };
+    const gateway = createAiGateway({
+      fetch: fetchMock,
+      providers: {
+        openai: { apiKey: "openai-secret", model: "gpt-reasoning" },
+        gemini: { apiKey: "gemini-secret", model: "gemini-fast" },
+      },
+      routing: { preferred: "openai", fallback: "gemini" },
+    });
+
+    const response = await gateway.generate({
+      prompt: "job.analyzer",
+      variables: { jobDescription: "Example" },
+      schema: outputSchema,
+      preferredProvider: "gemini",
+    });
+
+    expect(calls).toEqual(["gemini"]);
+    expect(response.metadata.provider).toBe("gemini");
+  });
+
   it("does not fall back after caller cancellation", async () => {
     const fetchMock = jest.fn<ReturnType<FetchLike>, Parameters<FetchLike>>()
       .mockImplementation(async (_url, init) => {

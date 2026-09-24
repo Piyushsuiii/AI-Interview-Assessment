@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { z } from "zod";
 import { PrismaService } from "../prisma/prisma.service";
 import { createIntelligenceGateway, intelligenceDb, recordAiUsage } from "../evaluations/intelligence.types";
+import { preferredProviderFor } from "../ai/ai-routing";
 
 const followupSchema = z.object({
   interviewId: z.string().min(1),
@@ -53,6 +54,7 @@ export class CandidateInterviewOrchestratorService {
             maximumQuestions: 1,
           },
           schema: followupSchema,
+          preferredProvider: preferredProviderFor(this.config, "fast"),
         });
         await recordAiUsage(this.prisma, interview.organizationId, "interviewer.followup", result.metadata.requestId, result.metadata.attempts);
         if (result.data.interviewId !== interviewId || result.data.candidateId !== interview.candidateId) throw new Error("Ungrounded follow-up identity");

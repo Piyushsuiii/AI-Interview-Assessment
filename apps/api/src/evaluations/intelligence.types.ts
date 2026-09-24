@@ -37,8 +37,8 @@ export function createIntelligenceGateway(config: ConfigService): ReturnType<typ
   return createAiGateway({
     fetch,
     providers: {
-      openai: openaiKey ? { apiKey: openaiKey, model: config.get("OPENAI_MODEL") ?? "gpt-4o-mini" } : undefined,
-      gemini: geminiKey ? { apiKey: geminiKey, model: config.get("GEMINI_MODEL") ?? "gemini-2.0-flash" } : undefined,
+      openai: openaiKey ? { apiKey: openaiKey, model: config.get("OPENAI_MODEL") ?? "gpt-5.6-sol" } : undefined,
+      gemini: geminiKey ? { apiKey: geminiKey, model: config.get("GEMINI_MODEL") ?? "gemini-3.6-flash" } : undefined,
     },
     routing: { preferred, fallback },
     defaultTimeoutMs: 30_000,

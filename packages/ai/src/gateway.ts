@@ -27,7 +27,14 @@ export class AiGateway {
     const attempts: AiAttemptMetadata[] = [];
     const errors: AiError[] = [];
 
-    for (const provider of this.#providers) {
+    const providers = request.preferredProvider
+      ? [
+          ...this.#providers.filter((provider) => provider.name === request.preferredProvider),
+          ...this.#providers.filter((provider) => provider.name !== request.preferredProvider),
+        ]
+      : this.#providers;
+
+    for (const provider of providers) {
       const attemptStartedAt = Date.now();
       let usage: AiAttemptMetadata["usage"];
       try {
