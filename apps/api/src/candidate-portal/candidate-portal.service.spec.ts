@@ -7,7 +7,7 @@ describe("CandidatePortalService", () => {
     interview: { findFirst: jest.fn(), update: jest.fn() },
     candidateAccount: { findUnique: jest.fn() },
   };
-  const service = new CandidatePortalService(prisma as never, {} as never, {} as never);
+  const service = new CandidatePortalService(prisma as never, {} as never, {} as never, {} as never);
 
   beforeEach(() => jest.clearAllMocks());
 

@@ -7,9 +7,10 @@ import { InterviewsModule } from "../interviews/interviews.module";
 import { CandidatesController } from "./candidates.controller";
 import { CandidatesService } from "./candidates.service";
 import { StorageModule } from "../storage/storage.module";
+import { ResumeIntelligenceModule } from "../resume-intelligence/resume-intelligence.module";
 
 @Module({
-  imports: [AuthModule, InterviewsModule, StorageModule],
+  imports: [AuthModule, InterviewsModule, StorageModule, ResumeIntelligenceModule],
   controllers: [CandidatesController, CandidateInvitationsController],
   providers: [CandidatesService, OrgContextGuard, PermissionsGuard],
 })

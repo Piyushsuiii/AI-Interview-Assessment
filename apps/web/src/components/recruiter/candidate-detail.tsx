@@ -105,7 +105,7 @@ export function CandidateDetail({ id }: { id: string }) {
     setResumeBusy(true);
     setResumeError('');
     try {
-      const metadata = await apiRequest<{ fileName: string; contentType: string; size: number; uploadedAt: string }>(
+      const metadata = await apiRequest<{ fileName: string; contentType: string; size: number; uploadedAt: string; classification: { label: string; confidence: number; model: string } | null }>(
         `/organizations/${organization.id}/candidates/${encodeURIComponent(id)}/resume`,
         { method: 'POST', body: form },
         organization.id,
@@ -119,6 +119,10 @@ export function CandidateDetail({ id }: { id: string }) {
           resumeContentType: metadata.contentType,
           resumeSize: metadata.size,
           resumeUploadedAt: metadata.uploadedAt,
+          resumeCategory: metadata.classification?.label ?? null,
+          resumeCategoryConfidence: metadata.classification?.confidence ?? null,
+          resumeAnalyzedAt: metadata.classification ? metadata.uploadedAt : null,
+          resumeModel: metadata.classification?.model ?? null,
         },
       } : current);
       formElement.reset();
@@ -169,6 +173,10 @@ export function CandidateDetail({ id }: { id: string }) {
           resumeContentType: null,
           resumeSize: null,
           resumeUploadedAt: null,
+          resumeCategory: null,
+          resumeCategoryConfidence: null,
+          resumeAnalyzedAt: null,
+          resumeModel: null,
         },
       } : current);
     } catch (error) {
@@ -231,6 +239,7 @@ export function CandidateDetail({ id }: { id: string }) {
             <input name="resume" type="file" accept="application/pdf,.pdf" required disabled={resumeBusy} className="min-w-0 flex-1 border border-[#353535] bg-[#151515] p-2 text-xs file:mr-3 file:border-0 file:bg-[#292929] file:px-3 file:py-1.5 file:text-white" />
             <button disabled={resumeBusy} className="btn-orange inline-flex h-10 items-center justify-center gap-2 px-4 font-mono text-[10px] uppercase tracking-wider disabled:opacity-50">{resumeBusy ? <LoaderCircle className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}{candidate.resumeFileName ? 'Replace' : 'Upload'}</button>
           </form>
+          {candidate.resumeCategory ? <div className="mt-4 border-l-2 border-[#ff4d1c] bg-[#202020] px-3 py-2"><p className="font-mono text-[9px] uppercase tracking-widest text-[#777]">CVerify resume family</p><p className="mt-1 text-sm font-medium">{candidate.resumeCategory.replaceAll('-', ' ')} <span className="text-xs font-normal text-[#888]">{candidate.resumeCategoryConfidence != null ? `${(candidate.resumeCategoryConfidence * 100).toFixed(1)}% confidence` : ''}</span></p></div> : null}
           {resumeError ? <p role="alert" className="mt-3 text-xs text-red-300">{resumeError}</p> : null}
         </div>
       </header>

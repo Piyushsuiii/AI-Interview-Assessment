@@ -446,6 +446,11 @@ model Candidate {
   resumeContentType String?
   resumeSize     Int?
   resumeUploadedAt DateTime?
+  resumeCategory String?
+  resumeCategoryConfidence Float?
+  resumeCategoryPredictions Json?
+  resumeAnalyzedAt DateTime?
+  resumeModel String?
   status         CandidateStatus @default(INVITED)
   organizationId String
   jobId          String

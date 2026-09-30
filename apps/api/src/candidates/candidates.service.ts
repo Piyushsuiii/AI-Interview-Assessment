@@ -12,6 +12,7 @@ import { canConsumeUsage, incrementUsage } from "../billing/entitlements";
 import { notifyOrganization } from "../notifications/notification-events";
 import { StorageService } from "../storage/storage.service";
 import { randomUUID } from "node:crypto";
+import { ResumeIntelligenceService } from "../resume-intelligence/resume-intelligence.service";
 
 type MutationContext = { userId: string; ipAddress?: string; userAgent?: string };
 
@@ -24,6 +25,7 @@ export class CandidatesService {
     private readonly config: ConfigService,
     private readonly orchestrator: CandidateInterviewOrchestratorService,
     private readonly storage: StorageService,
+    private readonly resumeIntelligence: ResumeIntelligenceService,
   ) {}
 
   async list(organizationId: string, query: CandidateListQuery) {
@@ -125,7 +127,9 @@ export class CandidatesService {
 
     const fileName = this.safeFileName(file.originalname);
     const objectKey = `organizations/${organizationId}/candidates/${candidateId}/resumes/${randomUUID()}.pdf`;
+    const classificationPromise = this.resumeIntelligence.classify(file);
     await this.storage.putObject(objectKey, file.buffer, "application/pdf");
+    const classification = await classificationPromise;
     const uploadedAt = new Date();
     try {
       await this.prisma.candidate.update({
@@ -137,6 +141,11 @@ export class CandidatesService {
           resumeContentType: "application/pdf",
           resumeSize: file.size,
           resumeUploadedAt: uploadedAt,
+          resumeCategory: classification?.label ?? null,
+          resumeCategoryConfidence: classification?.confidence ?? null,
+          resumeCategoryPredictions: classification?.predictions ?? Prisma.DbNull,
+          resumeAnalyzedAt: classification ? uploadedAt : null,
+          resumeModel: classification?.model ?? null,
         },
       });
     } catch (error) {
@@ -148,9 +157,9 @@ export class CandidatesService {
       action: "candidate.resume_uploaded",
       organizationId,
       ...context,
-      metadata: { candidateId, fileName, size: file.size, replaced: Boolean(existing.resumeObjectKey) },
+      metadata: { candidateId, fileName, size: file.size, replaced: Boolean(existing.resumeObjectKey), category: classification?.label },
     });
-    return { fileName, contentType: "application/pdf", size: file.size, uploadedAt };
+    return { fileName, contentType: "application/pdf", size: file.size, uploadedAt, classification };
   }
 
   async getResumeUrl(organizationId: string, candidateId: string) {
@@ -179,7 +188,19 @@ export class CandidatesService {
     }
     await this.prisma.candidate.update({
       where: { id: candidateId },
-      data: { resumeUrl: null, resumeObjectKey: null, resumeFileName: null, resumeContentType: null, resumeSize: null, resumeUploadedAt: null },
+      data: {
+        resumeUrl: null,
+        resumeObjectKey: null,
+        resumeFileName: null,
+        resumeContentType: null,
+        resumeSize: null,
+        resumeUploadedAt: null,
+        resumeCategory: null,
+        resumeCategoryConfidence: null,
+        resumeCategoryPredictions: Prisma.DbNull,
+        resumeAnalyzedAt: null,
+        resumeModel: null,
+      },
     });
     if (candidate.resumeObjectKey) await this.storage.deleteObject(candidate.resumeObjectKey).catch(() => undefined);
     await this.audit.record({ action: "candidate.resume_deleted", organizationId, ...context, metadata: { candidateId } });

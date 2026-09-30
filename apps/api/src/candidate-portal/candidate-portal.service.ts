@@ -4,6 +4,8 @@ import { AuditService } from "../audit/audit.service";
 import { createRawToken, hashToken } from "../common/crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { StorageService } from "../storage/storage.service";
+import { Prisma } from "@prisma/client";
+import { ResumeIntelligenceService } from "../resume-intelligence/resume-intelligence.service";
 
 const profileSelect = {
   id: true,
@@ -23,6 +25,7 @@ export class CandidatePortalService {
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
     private readonly audit: AuditService,
+    private readonly resumeIntelligence: ResumeIntelligenceService,
   ) {}
 
   async dashboard(accountId: string) {
@@ -35,6 +38,8 @@ export class CandidatePortalService {
         createdAt: true,
         updatedAt: true,
         resumeFileName: true,
+        resumeCategory: true,
+        resumeCategoryConfidence: true,
         organization: { select: { id: true, name: true } },
         job: { select: { id: true, title: true, department: true, location: true, employmentType: true } },
         interviews: {
@@ -115,14 +120,28 @@ export class CandidatePortalService {
     }
     const candidate = await this.ownedCandidate(accountId, candidateId);
     const key = `organizations/${candidate.organizationId}/candidates/${candidate.id}/resumes/${Date.now()}-${createRawToken(8)}.pdf`;
+    const classificationPromise = this.resumeIntelligence.classify(file);
     await this.storage.putObject(key, file.buffer, "application/pdf");
+    const classification = await classificationPromise;
+    const uploadedAt = new Date();
     await this.prisma.candidate.update({
       where: { id: candidate.id },
-      data: { resumeObjectKey: key, resumeFileName: file.originalname.slice(0, 255), resumeContentType: "application/pdf", resumeSize: file.size, resumeUploadedAt: new Date() },
+      data: {
+        resumeObjectKey: key,
+        resumeFileName: file.originalname.slice(0, 255),
+        resumeContentType: "application/pdf",
+        resumeSize: file.size,
+        resumeUploadedAt: uploadedAt,
+        resumeCategory: classification?.label ?? null,
+        resumeCategoryConfidence: classification?.confidence ?? null,
+        resumeCategoryPredictions: classification?.predictions ?? Prisma.DbNull,
+        resumeAnalyzedAt: classification ? uploadedAt : null,
+        resumeModel: classification?.model ?? null,
+      },
     });
     if (candidate.resumeObjectKey) await this.storage.deleteObject(candidate.resumeObjectKey).catch(() => undefined);
     await this.audit.record({ action: "candidate.resume_uploaded", organizationId: candidate.organizationId, metadata: { candidateAccountId: accountId, candidateId } });
-    return { fileName: file.originalname, sizeBytes: file.size };
+    return { fileName: file.originalname, sizeBytes: file.size, classification };
   }
 
   async resumeDownload(accountId: string, candidateId: string) {
@@ -137,7 +156,19 @@ export class CandidatePortalService {
     await this.storage.deleteObject(candidate.resumeObjectKey);
     await this.prisma.candidate.update({
       where: { id: candidate.id },
-      data: { resumeObjectKey: null, resumeUrl: null, resumeFileName: null, resumeContentType: null, resumeSize: null, resumeUploadedAt: null },
+      data: {
+        resumeObjectKey: null,
+        resumeUrl: null,
+        resumeFileName: null,
+        resumeContentType: null,
+        resumeSize: null,
+        resumeUploadedAt: null,
+        resumeCategory: null,
+        resumeCategoryConfidence: null,
+        resumeCategoryPredictions: Prisma.DbNull,
+        resumeAnalyzedAt: null,
+        resumeModel: null,
+      },
     });
     await this.audit.record({ action: "candidate.resume_deleted", organizationId: candidate.organizationId, metadata: { candidateAccountId: accountId, candidateId } });
     return { deleted: true };
@@ -159,6 +190,9 @@ export class CandidatePortalService {
             resumeFileName: true,
             resumeSize: true,
             resumeUploadedAt: true,
+            resumeCategory: true,
+            resumeCategoryConfidence: true,
+            resumeAnalyzedAt: true,
             createdAt: true,
             updatedAt: true,
             organization: { select: { name: true } },

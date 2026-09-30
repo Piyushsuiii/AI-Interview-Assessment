@@ -28,6 +28,7 @@ import { envSchema } from "./common/env";
 import { StorageModule } from "./storage/storage.module";
 import { CandidateAuthModule } from "./candidate-auth/candidate-auth.module";
 import { CandidatePortalModule } from "./candidate-portal/candidate-portal.module";
+import { ResumeIntelligenceModule } from "./resume-intelligence/resume-intelligence.module";
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { CandidatePortalModule } from "./candidate-portal/candidate-portal.modul
     }),
     PrismaModule,
     StorageModule,
+    ResumeIntelligenceModule,
     CandidateAuthModule,
     CandidatePortalModule,
     AuditModule,

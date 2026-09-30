@@ -49,6 +49,8 @@ export type CandidateApplication = {
   createdAt: string;
   updatedAt: string;
   resumeFileName: string | null;
+  resumeCategory: string | null;
+  resumeCategoryConfidence: number | null;
   organization: { id: string; name: string };
   job: { id: string; title: string; department: string | null; location: string | null; employmentType: string | null };
   interviews: Array<{ id: string; state: string; startedAt: string | null; completedAt: string | null; invitationExpiresAt: string | null; updatedAt: string }>;
@@ -121,6 +123,10 @@ export type Candidate = {
   resumeContentType?: string | null;
   resumeSize?: number | null;
   resumeUploadedAt?: string | null;
+  resumeCategory?: string | null;
+  resumeCategoryConfidence?: number | null;
+  resumeAnalyzedAt?: string | null;
+  resumeModel?: string | null;
   jobId: string;
   job?: Pick<Job, "id" | "title"> | null;
   interviews?: Array<{

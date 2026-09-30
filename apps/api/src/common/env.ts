@@ -27,6 +27,8 @@ export const envSchema = z.object({
   S3_SECRET_KEY: z.string().optional().default(""),
   S3_BUCKET_NAME: z.string().optional().default(""),
   S3_FORCE_PATH_STYLE: z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
+  CVERIFY_URL: z.union([z.literal(""), z.string().url()]).default(""),
+  CVERIFY_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
   STRIPE_SECRET_KEY: z.string().optional().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().optional().default(""),
   STRIPE_PRICE_STARTER: z.string().optional().default(""),

@@ -16,6 +16,7 @@ describe("CandidatesService", () => {
       { get: jest.fn() } as never,
       { afterTextAnswer: jest.fn() } as never,
       { putObject: jest.fn(), deleteObject: jest.fn(), getSignedDownloadUrl: jest.fn() } as never,
+      { classify: jest.fn().mockResolvedValue(null) } as never,
     );
 
     await expect(
@@ -56,6 +57,7 @@ describe("CandidatesService", () => {
       { get: jest.fn().mockReturnValue("https://example.test") } as never,
       { afterTextAnswer: jest.fn() } as never,
       { putObject: jest.fn(), deleteObject: jest.fn(), getSignedDownloadUrl: jest.fn() } as never,
+      { classify: jest.fn().mockResolvedValue(null) } as never,
     );
 
     const result = await service.invite(
@@ -91,6 +93,7 @@ describe("CandidatesService", () => {
       { get: jest.fn() } as never,
       { afterTextAnswer: jest.fn() } as never,
       { putObject: jest.fn(), deleteObject: jest.fn(), getSignedDownloadUrl: jest.fn() } as never,
+      { classify: jest.fn().mockResolvedValue(null) } as never,
     );
 
     await expect(service.getInvitation("a".repeat(64))).rejects.toBeInstanceOf(GoneException);
@@ -105,6 +108,7 @@ describe("CandidatesService", () => {
       { get: jest.fn() } as never,
       { afterTextAnswer: jest.fn() } as never,
       { putObject: jest.fn(), deleteObject: jest.fn(), getSignedDownloadUrl: jest.fn() } as never,
+      { classify: jest.fn().mockResolvedValue(null) } as never,
     );
 
     await expect(service.get("org-a", "candidate-from-org-b")).rejects.toBeInstanceOf(NotFoundException);
@@ -123,6 +127,7 @@ describe("CandidatesService", () => {
       { get: jest.fn() } as never,
       { afterTextAnswer: jest.fn() } as never,
       storage as never,
+      { classify: jest.fn().mockResolvedValue(null) } as never,
     );
     const file = { originalname: "resume.pdf", mimetype: "application/pdf", size: 9, buffer: Buffer.from("%PDF-test") } as Express.Multer.File;
 
@@ -146,6 +151,15 @@ describe("CandidatesService", () => {
       { get: jest.fn() } as never,
       { afterTextAnswer: jest.fn() } as never,
       storage as never,
+      { classify: jest.fn().mockResolvedValue({
+        label: "INFORMATION-TECHNOLOGY",
+        confidence: 0.91,
+        predictions: [{ label: "INFORMATION-TECHNOLOGY", confidence: 0.91 }],
+        chunksAnalyzed: 1,
+        charactersExtracted: 2_400,
+        usedOcr: false,
+        model: "distilbert_resume_classifier_candidate",
+      }) } as never,
     );
     const file = { originalname: "../Piyush Resume.pdf", mimetype: "application/pdf", size: 9, buffer: Buffer.from("%PDF-test") } as Express.Multer.File;
 
@@ -154,9 +168,20 @@ describe("CandidatesService", () => {
     expect(storage.putObject).toHaveBeenCalledWith(expect.stringMatching(/^organizations\/org-1\/candidates\/candidate-1\/resumes\/[a-f0-9-]+\.pdf$/), file.buffer, "application/pdf");
     expect(prisma.candidate.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: "candidate-1" },
-      data: expect.objectContaining({ resumeFileName: "Piyush Resume.pdf", resumeUrl: null }),
+      data: expect.objectContaining({
+        resumeFileName: "Piyush Resume.pdf",
+        resumeUrl: null,
+        resumeCategory: "INFORMATION-TECHNOLOGY",
+        resumeCategoryConfidence: 0.91,
+        resumeModel: "distilbert_resume_classifier_candidate",
+      }),
     }));
-    expect(result).toMatchObject({ fileName: "Piyush Resume.pdf", contentType: "application/pdf", size: 9 });
+    expect(result).toMatchObject({
+      fileName: "Piyush Resume.pdf",
+      contentType: "application/pdf",
+      size: 9,
+      classification: { label: "INFORMATION-TECHNOLOGY", confidence: 0.91 },
+    });
     expect(audit.record).toHaveBeenCalledWith(expect.objectContaining({ action: "candidate.resume_uploaded", organizationId: "org-1" }));
   });
 
@@ -170,6 +195,7 @@ describe("CandidatesService", () => {
       { get: jest.fn() } as never,
       { afterTextAnswer: jest.fn() } as never,
       storage as never,
+      { classify: jest.fn().mockResolvedValue(null) } as never,
     );
 
     await expect(service.getResumeUrl("org-1", "candidate-1")).resolves.toMatchObject({ url: "https://signed.example/resume", managed: true });
