@@ -43,6 +43,11 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+.venv/
+.venv-*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
 
 # TypeScript v1 declaration files
 typings/
@@ -104,6 +109,11 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+
+# Local ML artifacts are supplied through CVERIFY_MODEL_DIR.
+*.safetensors
+*.pt
+*.pth
 
 # Gatsby files
 .cache/
