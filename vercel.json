@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "installCommand": "npm install --workspace @ai-hiring-platform/web",
+  "buildCommand": "npm run build --workspace @ai-hiring-platform/web",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs"
+}

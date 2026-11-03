@@ -1,0 +1,4 @@
+apps/api
+apps/worker
+apps/cverify
+node_modules/.cache
