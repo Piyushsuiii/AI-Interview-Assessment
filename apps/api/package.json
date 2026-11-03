@@ -8,6 +8,7 @@
     "build": "nest build",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
+    "storage:verify": "node scripts/verify-storage.cjs",
     "lint": "echo 'lint skipped'",
     "test": "jest --config jest.config.js --runInBand",
     "test:watch": "jest --config jest.config.js --watch"

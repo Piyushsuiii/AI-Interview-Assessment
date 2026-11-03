@@ -74,10 +74,16 @@ export function Navbar() {
         {/* Actions */}
         <div className="flex items-center gap-3">
           <Link
+            href="/candidate/login"
+            className="font-mono text-xs tracking-widest uppercase text-[#9a9690] hover:text-[#f0ede8] transition-colors hidden md:block"
+          >
+            Candidate Portal
+          </Link>
+          <Link
             href="/login"
             className="font-mono text-xs tracking-widest uppercase text-[#9a9690] hover:text-[#f0ede8] transition-colors hidden sm:block"
           >
-            Sign In
+            Recruiter Sign In
           </Link>
           <Link
             href="/signup"
@@ -105,8 +111,11 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            <Link href="/candidate/login" onClick={() => setMenuOpen(false)} className="border-b border-[#242424] py-4 font-mono text-xs uppercase tracking-widest text-[#c2beb8] lg:hidden">
+              Candidate Portal
+            </Link>
             <Link href="/login" onClick={() => setMenuOpen(false)} className="py-4 font-mono text-xs uppercase tracking-widest text-[#c2beb8] sm:hidden">
-              Sign In
+              Recruiter Sign In
             </Link>
           </div>
         </nav>

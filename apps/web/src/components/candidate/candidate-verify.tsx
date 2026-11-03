@@ -2,18 +2,25 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { candidateApiRequest, getErrorMessage } from "@/lib/api";
 
 export function CandidateVerify() {
   const router = useRouter();
   const token = useSearchParams().get("token");
   const [error, setError] = useState(token ? "" : "This sign-in link is incomplete.");
+  const verification = useRef<{ token: string; request: Promise<unknown> } | null>(null);
 
   useEffect(() => {
     if (!token) return;
+    if (verification.current?.token !== token) {
+      verification.current = {
+        token,
+        request: candidateApiRequest("/candidate/auth/verify", { method: "POST", body: JSON.stringify({ token }) }),
+      };
+    }
     let active = true;
-    candidateApiRequest("/candidate/auth/verify", { method: "POST", body: JSON.stringify({ token }) })
+    verification.current.request
       .then(() => { if (active) { router.replace("/candidate"); router.refresh(); } })
       .catch((requestError) => { if (active) setError(getErrorMessage(requestError)); });
     return () => { active = false; };

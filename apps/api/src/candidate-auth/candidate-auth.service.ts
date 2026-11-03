@@ -57,11 +57,17 @@ export class CandidateAuthService {
         }),
       ]);
       const url = `${this.config.get("FRONTEND_URL") ?? "http://localhost:3000"}/candidate/verify?token=${token}`;
-      await this.mail.sendCandidateMagicLink(input.email, url);
+      let delivered = false;
+      try {
+        const delivery = await this.mail.sendCandidateMagicLink(input.email, url);
+        delivered = delivery.delivered;
+      } catch {
+        // Keep the response neutral so provider failures cannot reveal registered emails.
+      }
       await this.audit.record({ action: "candidate.auth_link_requested", ...context, metadata: { candidateAccountId: account.id } });
       return {
         message: "If a candidate account exists for that email, a sign-in link has been sent.",
-        ...(this.config.get("NODE_ENV") === "development" && !this.config.get("RESEND_API_KEY") ? { previewUrl: url } : {}),
+        ...(this.config.get("NODE_ENV") === "development" && !delivered ? { previewUrl: url } : {}),
       };
     }
     return { message: "If a candidate account exists for that email, a sign-in link has been sent." };

@@ -8,9 +8,13 @@ Google OAuth requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and a callback
 
 Password reset and email verification use Resend's HTTP API. Set server-only `RESEND_API_KEY` and `MAIL_FROM` to exercise delivery. In development, missing mail configuration safely skips delivery and logs only the message subject and skip reason; raw tokens, links, recipients, and message bodies are never logged or returned by the API.
 
+Candidate passwordless sign-in uses the same Resend configuration. Without it, the development login screen returns an **Open development link** button instead of sending mail. For real inbox delivery, verify a sender domain in Resend and set `MAIL_FROM` to an address on that domain. Resend's default testing sender can deliver only to the email address associated with the Resend account.
+
 AI role analysis requires at least one of `OPENAI_API_KEY` or `GEMINI_API_KEY`. When both are present, `AI_PRIMARY_PROVIDER` is attempted first and the other provider is used only after a retryable failure. Keys are server-only and must never use a `NEXT_PUBLIC_` prefix.
 
 Stripe is optional for local development. See `docs/billing.md` for product, Price, customer portal, and signed webhook setup. With empty Stripe variables, billing pages remain readable and payment actions are disabled.
+
+Resume uploads require a private S3-compatible bucket. Local development can use the MinIO service from `docker-compose.yml`. To use Supabase Storage, follow `docs/supabase-storage.md` and configure the generated S3 credentials only on the API; never expose them through a `NEXT_PUBLIC_` variable.
 
 Coding execution requires Redis and a running Docker daemon. Start the API and `apps/worker` together when exercising coding questions. The worker intentionally fails jobs if Docker is unavailable; do not add a local process fallback.
 

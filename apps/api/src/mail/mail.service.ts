@@ -78,7 +78,7 @@ export class MailService {
   }
 
   async sendCandidateMagicLink(to: string, url: string) {
-    await this.send({
+    return this.send({
       to,
       subject: "Sign in to your candidate portal",
       text: `Sign in to your candidate portal: ${url}`,

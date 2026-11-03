@@ -36,10 +36,10 @@ export function HeroSection() {
       </div>
 
       {/* Main hero content */}
-      <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-start lg:items-center gap-16 flex-1 py-24">
+      <div className="mx-auto flex w-full max-w-[86rem] flex-1 flex-col items-start gap-16 px-6 py-24 lg:flex-row lg:items-center lg:gap-12 xl:gap-20">
 
         {/* LEFT — Text Block */}
-        <div className="flex-1 max-w-2xl">
+        <div className="max-w-2xl flex-1 lg:-translate-x-2 xl:-translate-x-6">
           {/* Tag */}
           <motion.div
             variants={fadeUp}

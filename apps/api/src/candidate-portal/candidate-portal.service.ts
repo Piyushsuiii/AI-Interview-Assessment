@@ -115,45 +115,54 @@ export class CandidatePortalService {
 
   async uploadResume(accountId: string, candidateId: string, file: Express.Multer.File) {
     if (!file) throw new BadRequestException({ code: "RESUME_REQUIRED", message: "Select a PDF resume" });
-    if (file.size > 10 * 1024 * 1024 || file.mimetype !== "application/pdf" || file.buffer.subarray(0, 5).toString() !== "%PDF-") {
+    if (file.size > 10 * 1024 * 1024 || file.mimetype !== "application/pdf" || !file.originalname.toLowerCase().endsWith(".pdf") || file.buffer.subarray(0, 5).toString() !== "%PDF-") {
       throw new BadRequestException({ code: "INVALID_RESUME", message: "Resume must be a valid PDF up to 10 MB" });
     }
     const candidate = await this.ownedCandidate(accountId, candidateId);
     const key = `organizations/${candidate.organizationId}/candidates/${candidate.id}/resumes/${Date.now()}-${createRawToken(8)}.pdf`;
+    const fileName = this.safeFileName(file.originalname);
     const classificationPromise = this.resumeIntelligence.classify(file);
     await this.storage.putObject(key, file.buffer, "application/pdf");
     const classification = await classificationPromise;
     const uploadedAt = new Date();
-    await this.prisma.candidate.update({
-      where: { id: candidate.id },
-      data: {
-        resumeObjectKey: key,
-        resumeFileName: file.originalname.slice(0, 255),
-        resumeContentType: "application/pdf",
-        resumeSize: file.size,
-        resumeUploadedAt: uploadedAt,
-        resumeCategory: classification?.label ?? null,
-        resumeCategoryConfidence: classification?.confidence ?? null,
-        resumeCategoryPredictions: classification?.predictions ?? Prisma.DbNull,
-        resumeAnalyzedAt: classification ? uploadedAt : null,
-        resumeModel: classification?.model ?? null,
-      },
-    });
+    try {
+      await this.prisma.candidate.update({
+        where: { id: candidate.id },
+        data: {
+          resumeUrl: null,
+          resumeObjectKey: key,
+          resumeFileName: fileName,
+          resumeContentType: "application/pdf",
+          resumeSize: file.size,
+          resumeUploadedAt: uploadedAt,
+          resumeCategory: classification?.label ?? null,
+          resumeCategoryConfidence: classification?.confidence ?? null,
+          resumeCategoryPredictions: classification?.predictions ?? Prisma.DbNull,
+          resumeAnalyzedAt: classification ? uploadedAt : null,
+          resumeModel: classification?.model ?? null,
+        },
+      });
+    } catch (error) {
+      await this.storage.deleteObject(key).catch(() => undefined);
+      throw error;
+    }
     if (candidate.resumeObjectKey) await this.storage.deleteObject(candidate.resumeObjectKey).catch(() => undefined);
     await this.audit.record({ action: "candidate.resume_uploaded", organizationId: candidate.organizationId, metadata: { candidateAccountId: accountId, candidateId } });
-    return { fileName: file.originalname, sizeBytes: file.size, classification };
+    return { fileName, sizeBytes: file.size, classification };
   }
 
   async resumeDownload(accountId: string, candidateId: string) {
     const candidate = await this.ownedCandidate(accountId, candidateId);
-    if (!candidate.resumeObjectKey) throw new NotFoundException({ code: "RESUME_NOT_FOUND", message: "Resume not found" });
-    return { fileName: candidate.resumeFileName, url: await this.storage.getSignedDownloadUrl(candidate.resumeObjectKey, candidate.resumeFileName ?? "resume.pdf", 300) };
+    if (candidate.resumeObjectKey) {
+      return { fileName: candidate.resumeFileName, url: await this.storage.getSignedDownloadUrl(candidate.resumeObjectKey, candidate.resumeFileName ?? "resume.pdf", 300) };
+    }
+    if (candidate.resumeUrl) return { fileName: candidate.resumeFileName ?? "resume.pdf", url: candidate.resumeUrl };
+    throw new NotFoundException({ code: "RESUME_NOT_FOUND", message: "Resume not found" });
   }
 
   async deleteResume(accountId: string, candidateId: string) {
     const candidate = await this.ownedCandidate(accountId, candidateId);
-    if (!candidate.resumeObjectKey) return { deleted: true };
-    await this.storage.deleteObject(candidate.resumeObjectKey);
+    if (!candidate.resumeObjectKey && !candidate.resumeUrl) return { deleted: true };
     await this.prisma.candidate.update({
       where: { id: candidate.id },
       data: {
@@ -170,6 +179,7 @@ export class CandidatePortalService {
         resumeModel: null,
       },
     });
+    if (candidate.resumeObjectKey) await this.storage.deleteObject(candidate.resumeObjectKey).catch(() => undefined);
     await this.audit.record({ action: "candidate.resume_deleted", organizationId: candidate.organizationId, metadata: { candidateAccountId: accountId, candidateId } });
     return { deleted: true };
   }
@@ -242,9 +252,15 @@ export class CandidatePortalService {
   private async ownedCandidate(accountId: string, candidateId: string) {
     const candidate = await this.prisma.candidate.findFirst({
       where: { id: candidateId, candidateAccountId: accountId },
-      select: { id: true, organizationId: true, resumeObjectKey: true, resumeFileName: true },
+      select: { id: true, organizationId: true, resumeObjectKey: true, resumeFileName: true, resumeUrl: true },
     });
     if (!candidate) throw new NotFoundException({ code: "APPLICATION_NOT_FOUND", message: "Application not found" });
     return candidate;
+  }
+
+  private safeFileName(fileName: string) {
+    const baseName = fileName.split(/[\\/]/).pop() ?? "resume.pdf";
+    const cleaned = baseName.replace(/[\u0000-\u001f\u007f]/g, "_").slice(0, 180);
+    return cleaned || "resume.pdf";
   }
 }

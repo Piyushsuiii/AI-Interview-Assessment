@@ -1,8 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { Worker, type Job } from "bullmq";
 import type { CodeExecutionJob, CodeExecutionJobName, CodeExecutionQueueName } from "@ai-hiring-platform/events";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import dotenv from "dotenv";
 import { processCodeExecution } from "./processor";
 import { parseWorkerConfig } from "./config";
+
+const developmentEnv = path.resolve(__dirname, "../../../.env");
+if (existsSync(developmentEnv)) dotenv.config({ path: developmentEnv, quiet: true });
 
 // Type-checked literals avoid requiring a TypeScript-source workspace package at runtime.
 const CODE_EXECUTION_QUEUE: CodeExecutionQueueName = "code-execution";

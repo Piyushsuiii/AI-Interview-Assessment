@@ -8,7 +8,7 @@ describe("CandidateAuthService", () => {
     candidateMagicLink: { updateMany: jest.fn(), create: jest.fn() },
     $transaction: jest.fn(),
   };
-  const mail = { sendCandidateMagicLink: jest.fn() };
+  const mail = { sendCandidateMagicLink: jest.fn().mockResolvedValue({ delivered: false }) };
   const audit = { record: jest.fn() };
   const config = {
     get: jest.fn((key: string) => ({ FRONTEND_URL: "http://localhost:3000", NODE_ENV: "development" })[key]),
@@ -47,5 +47,25 @@ describe("CandidateAuthService", () => {
     expect(stored).toBe(hashToken(rawToken));
     expect(stored).not.toBe(rawToken);
     expect(result.previewUrl).toBe(url);
+  });
+
+  it("does not return a development preview when email delivery succeeds", async () => {
+    prisma.candidate.findFirst.mockResolvedValue({ firstName: "Ada", lastName: "Lovelace" });
+    prisma.candidateAccount.findUnique.mockResolvedValue({ id: "account-1" });
+    mail.sendCandidateMagicLink.mockResolvedValueOnce({ delivered: true });
+
+    const result = await service.requestMagicLink({ email: "ada@example.com" }, {});
+
+    expect(result.previewUrl).toBeUndefined();
+  });
+
+  it("returns a development preview when the provider rejects delivery", async () => {
+    prisma.candidate.findFirst.mockResolvedValue({ firstName: "Ada", lastName: "Lovelace" });
+    prisma.candidateAccount.findUnique.mockResolvedValue({ id: "account-1" });
+    mail.sendCandidateMagicLink.mockRejectedValueOnce(new Error("provider unavailable"));
+
+    const result = await service.requestMagicLink({ email: "ada@example.com" }, {});
+
+    expect(result.previewUrl).toContain("/candidate/verify?token=");
   });
 });

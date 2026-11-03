@@ -22,6 +22,7 @@ Deploy web, API, code-execution worker, PostgreSQL, Redis, and S3-compatible sto
 - Verify a Resend sending domain, set server-only `RESEND_API_KEY` and `MAIL_FROM`, and monitor provider delivery failures.
 - Use HTTPS; production authentication cookies use `Secure` and `SameSite=None` for cross-origin deployments.
 - Restrict database and Redis networking to application services.
+- Keep the Supabase resume bucket private, store its S3 access key only in the API secret store, and verify storage readiness before exposing resume controls.
 - Isolate worker hosts from internal services and continuously prune terminated execution containers.
 - Apply provider budgets and alerts for AI usage.
 - Configure Stripe API and webhook secrets only on the API service, register the exact `/api/v1/billing/webhook` URL, and monitor failed `BillingWebhookEvent` rows.
