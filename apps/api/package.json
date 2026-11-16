@@ -5,7 +5,7 @@
   "description": "NestJS Backend Application",
   "scripts": {
     "dev": "nest start --watch",
-    "build": "nest build",
+    "build": "npm run prisma:generate --workspace=@ai-hiring-platform/database && nest build",
 "prebuild": "npm run prisma:generate --workspace=@ai-hiring-platform/database",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
