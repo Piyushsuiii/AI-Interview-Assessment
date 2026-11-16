@@ -1,0 +1,2012 @@
+
+========== PAGE 1 ==========
+AI Interview Assessment Platform
+Project Report
+Submitted by –
+Aryan Sharma - 23BCS12698
+Piyush Sharma - 23BCS13756
+Taniya - 23BCS12605
+Rishab Bahri - 23BCS12848
+Thanda Shiva Kumar
+in partial fulfilment for the award of the degree of
+BACHELOR OF ENGINEERING
+IN
+COMPUTER SCIENCE & ENGINEERING
+
+========== PAGE 2 ==========
+Chandigarh University   JULY 2026
+BONAFIDE CERTIFICATE
+Certified that this project report entitled “AI HIRING INTELLIGENCE
+PLATFORM” is the bonafide work of Aryan Sharma (23BCS12698), Piyush Sharma
+(23BCS13756), Taniya (23BCS12605), Rishab Bahri (23BCS12848) and Thanda
+Shiva Kumar, who carried out the project work under my supervision.
+SIGNATURE
+NAME OF THE HEAD OF DEPARTMENT
+HEAD OF THE DEPARTMENT
+Department of Computer Science and Engineering
+SIGNATURE
+NAME OF THE SUPERVISOR
+SUPERVISOR
+ACADEMIC DESIGNATION
+Department of Computer Science and Engineering
+Submitted for the project viva-voce examination held on DD/MM/YYYY.
+INTERNAL EXAMINER
+EXTERNAL EXAMINER
+
+========== PAGE 3 ==========
+i
+ACKNOWLEDGEMENT
+We express our sincere gratitude to our project supervisor, NAME OF THE SUPERVISOR, for
+continuous guidance, constructive suggestions, and encouragement throughout this project. We
+also thank the Head and faculty members of Department of Computer Science and Engineering,
+Chandigarh University, for providing the academic environment and resources required to
+complete the work. We are grateful to our peers and families for their support and valuable
+feedback. Finally, we acknowledge the researchers, standards bodies, and open-source
+communities whose publications and software tools supported the design, implementation, and
+evaluation of the AI Hiring Intelligence Platform.
+
+========== PAGE 4 ==========
+ii
+TABLE OF CONTENTS
+ACKNOWLEDGEMENT .......................................................................................................... i
+LIST OF FIGURES ................................................................................................................... iii
+LIST OF TABLES ..................................................................................................................... iv
+ABSTRACT ................................................................................................................................ v
+GRAPHICAL ABSTRACT ...................................................................................................... vi
+ABBREVIATIONS ................................................................................................................... vii
+SYMBOLS ................................................................................................................................ viii
+CHAPTER 1. INTRODUCTION .............................................................................................. 1
+1.1. Client Identification/Need Identification/Identification of Relevant Contemporary
+Issue ............................................................................................................................................. 1
+1.2. Identification of Problem ...................................................................................................... 2
+1.3. Identification of Tasks .......................................................................................................... 2
+1.4. Timeline ................................................................................................................................ 3
+1.5. Organization of the Report ................................................................................................... 4
+CHAPTER 2. LITERATURE REVIEW/BACKGROUND STUDY .................................... 6
+2.1. Timeline of the Reported Problem ........................................................................................ 6
+2.2. Proposed Solutions ............................................................................................................... 7
+2.3. Bibliometric Analysis ........................................................................................................... 8
+2.4. Review Summary .................................................................................................................. 9
+2.5. Problem Definition ............................................................................................................. 10
+2.6. Goals/Objectives ................................................................................................................. 11
+
+========== PAGE 5 ==========
+iii
+LIST OF FIGURES
+1.1 Sixteen-week project development timeline .......................................................................... 4
+
+========== PAGE 6 ==========
+iv
+LIST OF TABLES
+2.1 Feature-based analysis of representative literature ................................................................ 8
+
+========== PAGE 7 ==========
+v
+ABSTRACT
+Recruitment requires organizations to assess candidates consistently and make decisions that can
+be explained. Conventional workflows often divide resumes, interviews, coding exercises,
+reviewer notes, and reports across disconnected tools. The AI Hiring Intelligence Platform was
+developed as a unified, multi-tenant web application for structured technical hiring. It allows
+recruiters to define jobs and skills, publish versioned assessments, invite candidates, conduct
+adaptive interviews, evaluate coding and system-design work, and generate evidence-linked
+reports. A separate candidate portal provides passwordless access, saved progress, resume
+management, and privacy-request functions.
+Resume intelligence is provided by CVerify, a locally served DistilBERT classifier covering 24
+job families. On a held-out test set, it achieved 86.35% accuracy, 85.36% weighted F1-score, and
+79.47% macro F1-score.
+The platform uses Next.js, NestJS, PostgreSQL, Redis, FastAPI, and restricted Docker
+containers. Security controls include separate recruiter and candidate sessions, role-based
+permissions, organization-scoped data access, hashed tokens, immutable assessment snapshots,
+and audit records. Artificial intelligence supports rather than replaces professional judgement:
+outputs are validated, evidence is retained, and recommendations remain reviewable. The project
+improves workflow consistency and traceability while recognizing the need for human oversight,
+privacy governance, bias monitoring, and field validation.
+Keywords: artificial intelligence, recruitment, adaptive interview, resume classification,
+DistilBERT, candidate assessment, explainable evaluation.
+
+========== PAGE 8 ==========
+vi
+GRAPHICAL ABSTRACT
+AI Hiring Intelligence Platform: human-supervised, evidence-based hiring workflow
+
+========== PAGE 9 ==========
+vii
+ABBREVIATIONS
+AI
+Artificial Intelligence
+API
+Application Programming Interface
+ATS
+Applicant Tracking System
+JWT
+JSON Web Token
+NLP
+Natural Language Processing
+OCR
+Optical Character Recognition
+RBAC
+Role-Based Access Control
+REST
+Representational State Transfer
+SaaS
+Software as a Service
+UI
+User Interface
+
+========== PAGE 10 ==========
+viii
+SYMBOLS
+P
+Precision of a classifier
+R
+Recall of a classifier
+F1
+Harmonic mean of precision and recall
+n
+Number of observations or documents
+%
+Percentage
+
+========== PAGE 11 ==========
+1
+CHAPTER 1
+INTRODUCTION
+1.1. Client Identification/Need Identification/Identification of Relevant Contemporary Issue
+The principal clients of this project are recruitment teams, hiring managers, and technical
+interviewers in organizations that recruit candidates for skill-intensive roles. These users must
+define job requirements, process applications, coordinate assessments, compare evidence, and
+document decisions. Candidates are an equally important stakeholder group because they provide
+sensitive information, complete the assessment, and experience the consequences of the process.
+System administrators form a third group responsible for access, security, service availability,
+and usage governance.
+The need exists because hiring requirements and available skills are changing rapidly. The World
+Economic Forum’s Future of Jobs Report 2025, based on a survey of more than 1,000 employers
+representing over 14 million workers across 55 economies, reports that 39% of workers’ existing
+skill sets are expected to be transformed or become outdated by 2030. It also identifies skills gaps
+as a major barrier to business transformation and shows that artificial intelligence and
+information-processing technologies are expected to reshape many organizations. These findings
+create pressure to assess demonstrable capability and adaptability rather than depend only on job
+titles and resume keywords.
+The current issue is also procedural. Technical recruitment may involve resume screening,
+conversational interviews, coding exercises, system-design tasks, reviewer notes, and final
+reports. When these activities occur in disconnected tools, information must be copied manually,
+assessment criteria can vary, and the reasoning behind a decision becomes difficult to
+reconstruct. Research on personnel selection has shown that job-related structure and
+standardized evaluation improve the quality and consistency of interviews. At the same time,
+algorithmic hiring studies warn that poorly validated data and models may reproduce
+discrimination or hide unsuitable assumptions.
+This is a contemporary issue recognized by major institutions. NIST provides an AI
+risk-management framework based on governance, mapping, measurement, and management.
+The European Union AI Act identifies specified employment-related AI applications as high-risk
+and emphasizes risk controls, documentation, human oversight, and performance. The identified
+need is therefore not simply faster automation. Clients require an integrated process that is
+structured, traceable, secure, candidate-aware, and subject to responsible human control.
+
+========== PAGE 12 ==========
+2
+1.2. Identification of Problem
+Technical recruitment depends on several forms of information that are difficult to collect and
+compare consistently. A resume describes previous experience but does not directly demonstrate
+current coding, analytical, communication, or system-design ability. An interview may reveal
+reasoning, yet two candidates can receive different questions, prompts, and levels of assistance.
+A coding result can indicate whether tests passed but may omit the candidate’s explanation and
+the context in which the task was completed. Recruiters must combine these fragments before
+reaching a decision, often under time pressure and with incomplete traceability.
+The broad problem is the absence of a coherent and accountable assessment process that connects
+job requirements with comparable candidate evidence. Fragmented workflows lead to repeated
+data entry and make it difficult to establish which job skill was assessed by a question, which
+version of that question was presented, what the candidate submitted, and how the evidence
+affected the final judgement. If assessment content changes during recruitment, candidates may
+unknowingly be compared under different conditions. If criteria are not defined in advance,
+reviewers may place inconsistent weight on similar answers.
+A second aspect is limited evidence visibility. Numerical scores and short summaries can appear
+precise while concealing the assumptions, source material, or uncertainty behind them. This risk
+becomes greater when artificial intelligence participates in screening or evaluation. A fluent
+automated explanation may be accepted without checking whether it is grounded in the
+candidate’s actual response. Historical data, proxy variables, unbalanced datasets, and unsuitable
+labels can also produce unequal outcomes even when protected characteristics are not explicitly
+used.
+The problem also affects candidates. Invitation links, interview progress, resume records,
+consent, and privacy requests may be distributed across different channels. Connection failures
+can cause work to be lost, while unclear data practices can reduce trust. Recruitment data
+includes identity details, employment history, written answers, source code, and evaluative
+conclusions, all of which require controlled access and retention.
+The problem can therefore be stated as follows: technical hiring lacks a unified, consistent,
+evidence-oriented, and governable mechanism for relating role requirements to candidate
+assessment data while preserving comparability, privacy, security, reviewability, and human
+accountability. This definition intentionally describes the need and its boundaries without
+prescribing a particular technical solution.
+1.3. Identification of Tasks
+The project was divided into tasks that separately identify the requirements, build the selected
+system, and test whether it satisfies its intended purpose. The sequence also provides the
+framework for the remaining report chapters.
+
+========== PAGE 13 ==========
+3
+1.
+Problem and stakeholder study: identify recruiter, candidate, hiring manager, interviewer,
+and administrator needs; review contemporary reports; and define the ethical, privacy,
+security, and operational risks.
+2.
+Literature 
+investigation: 
+examine 
+structured 
+selection, 
+digital 
+recruitment,
+transformer-based text classification, AI-assisted decision-making, applicant reactions, bias,
+and regulatory guidance. Compare proposed approaches by their features, effectiveness, and
+limitations.
+3.
+Requirements specification: translate the problem into functional requirements for jobs,
+skills, candidates, assessments, interviews, coding tasks, system-design exercises, resume
+analysis, evaluations, reports, and privacy requests. Define non-functional requirements for
+security, tenant isolation, reliability, usability, traceability, and performance.
+4.
+Alternative design generation: prepare and compare possible system architectures, data
+flows, AI-provider strategies, interview flows, and code-execution approaches. Evaluate
+them against safety, cost, scalability, maintainability, and academic-project constraints.
+5.
+Detailed design: define the data model, API contracts, user roles, permission rules, user
+interfaces, interview state machine, AI schemas, background jobs, evidence structure, and
+failure-handling behaviour.
+6.
+Implementation: develop the recruiter application, candidate portal, backend services,
+relational database, queue worker, isolated code runner, AI gateway, and CVerify
+resume-classification service. Integrate the components through validated interfaces.
+7.
+Model preparation and evaluation: split resume data at document level, fine-tune the
+DistilBERT classifier, compare checkpoints, and report held-out accuracy, weighted
+F1-score, and macro F1-score without allowing document-chunk leakage.
+8.
+Verification and validation: test authentication, authorization, tenant boundaries, interview
+progression, AI fallback, coding isolation, report generation, candidate privacy functions,
+responsive interfaces, database migrations, and end-to-end browser journeys.
+9.
+Documentation and analysis: record architecture, setup, security, results, limitations, user
+instructions, deviations, and future improvements in a form that supports reproduction and
+responsible review.
+1.4. Timeline
+The work was planned as a sixteen-week iterative project. High-dependency foundations,
+including data design and authorization, were scheduled before assessment and interview
+features. Testing and documentation continued alongside implementation so that defects and
+design limitations could be identified early.
+
+========== PAGE 14 ==========
+4
+Figure 1.1: Sixteen-week project development timeline
+Weeks 1–2 define the problem and collect authoritative literature. Weeks 3–4 establish the
+architecture, database entities, API conventions, and security boundaries. Recruiter
+authentication, organization membership, jobs, and candidate pipelines are implemented in
+Weeks 5–6, followed by the question bank, versioned assessments, and publishing workflow in
+Weeks 7–8. Weeks 9–10 create the resumable candidate interview and bounded adaptive
+follow-up process. The isolated coding worker and system-design submission flow are completed
+in Week 11.
+AI evaluation, evidence mapping, reports, and candidate comparison are addressed in Weeks
+12–13. Week 14 adds candidate self-service and integrates the CVerify resume classifier. Week
+15 is reserved for authorization review, migration checks, service tests, and desktop/mobile
+browser testing. Week 16 consolidates results, limitations, deployment guidance, the user
+manual, and the final academic report. The order reduces the likelihood that unsafe execution,
+weak identity separation, or mutable assessment content becomes embedded in later work.
+1.5. Organization of the Report
+The report is organized according to the Chandigarh University undergraduate project report
+format. The preliminary pages contain the title page, bonafide certificate, acknowledgement,
+table of contents, lists of figures and tables, abstract, graphical abstract, abbreviations, and
+symbols.
+
+========== PAGE 15 ==========
+5
+Chapter 1: Introduction identifies the clients and stakeholders, justifies the contemporary need,
+defines the broad problem without prescribing a solution, divides the work into identifiable tasks,
+presents the project timeline, and explains the structure of the report.
+Chapter 2: Literature Review/Background Study traces the historical development of
+structured and technology-supported recruitment. It examines previous solutions, compares
+representative literature by features, effectiveness, and drawbacks, summarizes the findings
+relevant to this project, and converts the identified gap into a precise problem definition and
+measurable objectives.
+Chapter 3: Design Flow/Process evaluates the specifications and features derived from the
+literature. It discusses regulatory, economic, environmental, security, professional, ethical, and
+social constraints. Alternative designs are compared, the preferred architecture is selected with
+reasons, and the implementation methodology is described through data flows, algorithms, and
+detailed component diagrams.
+Chapter 4: Results Analysis and Validation explains the implementation using modern
+engineering tools. It presents application workflows, AI and resume-classifier results,
+code-execution safeguards, test outcomes, data validation, interface evidence, and interpretation
+of observed behaviour. Expected results are separated from directly measured results to avoid
+unsupported claims.
+Chapter 5: Conclusion and Future Work summarizes what the project achieved, identifies
+deviations and limitations, and proposes extensions such as production object storage, operational
+monitoring, accessibility studies, subgroup fairness analysis, organizational pilots, and
+longitudinal validity assessment.
+The Appendix contains supplementary technical material that would interrupt the main
+discussion. The User Manual provides step-by-step setup and operating instructions with the
+required screenshots, while the Achievements section records verified project outcomes.
+
+========== PAGE 16 ==========
+6
+CHAPTER 2
+LITERATURE REVIEW/BACKGROUND STUDY
+2.1. Timeline of the Reported Problem
+The difficulty of making consistent hiring decisions existed before digital recruitment. Early
+personnel selection often depended on unstructured interviews and individual judgement. During
+the twentieth century, industrial and organizational psychology developed standardized tests, job
+analysis, and structured interview methods. By the 1990s, research had documented specific
+components of interview structure, including consistent questions, controlled prompting,
+anchored ratings, and interviewer preparation. Schmidt and Hunter later synthesized decades of
+evidence and showed why selection methods must be evaluated by demonstrated validity rather
+than intuitive confidence.
+The spread of the internet in the late 1990s and 2000s moved vacancies and applications online.
+Applicant tracking systems improved storage, search, and workflow management, but keyword
+filtering could not establish practical competence and often retained opaque screening rules.
+Online testing and coding platforms subsequently allowed employers to collect work samples at
+scale. These tools improved access to task evidence but frequently remained separate from
+interviews, applicant records, and final reviewer notes.
+During the 2010s, machine learning expanded from search and ranking into resume matching,
+candidate engagement, and assessment. Transformer architectures became a major turning point.
+BERT demonstrated effective bidirectional language pre-training for downstream text tasks;
+DistilBERT later reduced model size and inference cost through knowledge distillation. These
+developments made local resume classification and large-scale language analysis more practical.
+At the same time, reported risks became more visible. Applicant-reaction research showed that
+digital selection must be judged by procedural justice and candidate experience as well as
+organizational efficiency. Systematic reviews documented how data, labels, features, and
+deployment choices can cause discrimination. Raghavan et al. found that bias-mitigation claims
+in algorithmic hiring often used inconsistent definitions and limited external validation.
+From 2020 onward, generative AI increased the ability to create questions, summarize answers,
+and support conversational assessment, while also increasing concerns about hallucination and
+over-reliance. Governance consequently became central: NIST released AI RMF 1.0 in 2023, the
+EU adopted the AI Act in 2024, and employment authorities issued guidance on adverse impact.
+The historical pattern shows a progression from informal judgement to structured assessment,
+digital workflow, algorithmic assistance, and finally governed, human-supervised AI.
+
+========== PAGE 17 ==========
+7
+2.2. Proposed Solutions
+Researchers and practitioners have proposed several classes of solution to recruitment problems.
+The first is the structured interview. Candidates receive job-related questions under consistent
+conditions, and evaluators use predetermined criteria or anchored rating scales. This method
+improves comparability and reduces some sources of interviewer discretion. Its limitation is that
+a strict script may not adequately investigate an unusual, incomplete, or highly promising
+response.
+The second class is the applicant tracking and resume-screening system. Such systems
+centralize vacancies and applications, support search, and automate status changes.
+Natural-language processing can extend keyword matching by classifying documents or
+estimating semantic similarity. BERT and DistilBERT provide strong foundations for focused
+text classification. However, resume language is an indirect and socially influenced
+representation of competence. Classification accuracy can hide weak minority-class performance,
+and historical patterns may introduce proxy bias. Resume output should therefore organize
+information rather than determine employability.
+The third solution is online practical assessment. Coding platforms run test cases against
+submitted programs, while work-sample and system-design tasks collect direct evidence. These
+methods are more closely related to job activity than resume keywords, but secure execution
+requires isolation, time and memory limits, hidden-test protection, and resistance to service
+misuse. A test result also needs context because passing cases does not fully explain
+maintainability, reasoning, or trade-offs.
+The fourth solution is AI-assisted recruitment. Language models can analyze roles, suggest
+competencies, generate questions, ask follow-ups, and summarize evidence. Black and van Esch
+describe opportunities across sourcing, screening, engagement, and selection, while Tambe et al.
+emphasize data, organizational, and ethical challenges in human-resource AI. The main
+drawbacks are unverifiable output, prompt sensitivity, provider dependence, privacy exposure,
+and automation bias.
+The fifth solution is responsible-AI governance. Human review, model documentation, audit
+records, output validation, bias monitoring, candidate notice, and appeal processes address risks
+that model performance alone cannot resolve. Governance is essential but does not itself create
+an usable assessment workflow. The literature therefore supports an integrated approach:
+structured criteria, practical evidence, bounded AI assistance, candidate-centred access, secure
+engineering, and a final decision retained by accountable people.
+
+========== PAGE 18 ==========
+8
+2.3. Bibliometric Analysis
+The review used a structured thematic search covering AI recruitment, algorithmic hiring bias,
+structured interview validity, digital personnel selection, BERT resume classification, applicant
+reactions, and employment AI regulation. Priority was given to peer-reviewed articles, influential
+conference papers, official standards, and primary regulatory material. Table 2.1 compares
+representative work by key feature, reported effectiveness, and principal drawback. It is a
+thematic bibliometric mapping and does not claim citation-frequency results from Scopus or Web
+of Science.
+Table 2.1: Feature-based analysis of representative literature
+Source/theme
+Key feature
+Effectiveness
+Drawback
+Campion et al.
+Structured
+interview
+components
+Improves consistency through
+standardized questions and
+anchored scoring
+Excessive structure can
+restrict useful clarification
+Schmidt and
+Hunter
+Selection-method
+validity
+Supports evidence-based
+comparison of personnel-selection
+methods
+General evidence must still
+be validated for each job and
+context
+Black and van Esch
+AI-enabled
+recruiting
+Supports scale across sourcing,
+screening, engagement, and
+selection
+Adoption and trust depend on
+design and management
+practice
+Devlin et al.; Sanh
+et al.
+Transformer text
+classification
+Strong transferable language
+representations; DistilBERT
+lowers inference cost
+Output depends on dataset
+quality, labels, and domain
+coverage
+Kochling and
+Wehner; Raghavan
+et al.
+Fairness and bias
+analysis
+Identifies discrimination paths and
+weaknesses in audit claims
+Fairness definitions and
+evidence are inconsistent
+across systems
+NIST; EU AI Act
+AI risk governance
+Provides lifecycle controls,
+documentation, and oversight
+expectations
+Requires context-specific
+implementation and
+continuing monitoring
+Three trends are visible. First, literature has moved from isolated predictive validity toward
+socio-technical analysis that includes applicant experience, data quality, fairness, privacy, and
+accountability. Second, the sources increasingly support human augmentation rather than
+irreversible autonomous decisions. Third, documentation and monitoring are now treated as core
+system properties. Question versions, model identity, evidence, confidence, overrides, and audit
+events are required to understand how an outcome was produced.
+The main limitation of the evidence base is heterogeneity. Studies examine different jobs, tools,
+fairness definitions, and outcomes; many analyze narrow components rather than long-running,
+end-to-end deployments. Rapid generative-AI development also moves faster than longitudinal
+employment research. A future quantitative bibliometric study should export a reproducible
+
+========== PAGE 19 ==========
+9
+dataset, define inclusion criteria, remove duplicates, and use tools such as VOSviewer or
+Bibliometrix to analyze citations, coauthorship, publication trends, and keyword co-occurrence.
+2.4. Review Summary
+The literature establishes that recruitment quality depends on job relevance, consistency,
+evidence, and accountable judgement. Structured interviews provide a strong foundation because
+comparable questions and defined scoring guidance reduce uncontrolled variation.
+Digital-selection research adds that effectiveness cannot be measured only by recruiter speed.
+Candidates judge the process through clarity, opportunity to perform, job relatedness, treatment,
+and the ability to understand what is expected.
+Natural-language processing expands the available technical methods. Transformer models can
+classify resume text and assist analysis, while generative models can draft role-aligned content
+and summarize responses. However, language fluency is not evidence of factual correctness or
+predictive validity. Accuracy can also conceal class imbalance, and a resume category cannot
+establish an individual’s competence. Therefore, automated outputs need bounded purpose,
+measured performance, clear uncertainty, and supporting source material.
+The fairness literature provides the strongest warning against a purely automated approach. Bias
+can enter through collection practices, historical decisions, proxy features, labels, objective
+functions, and deployment choices. Removing a protected field does not remove all correlated
+information. Governance consequently requires representative evaluation, subgroup monitoring,
+documentation, access controls, candidate communication, human review, and a method for
+questioning or changing an automated recommendation.
+These findings connect directly to the project. A useful system should relate role skills to
+versioned questions and preserve the candidate’s text, code, design, and test results as separate
+evidence. Resume classification should support organization of documents, not automatic
+rejection. Adaptive questioning should remain bounded so that individual clarification does not
+destroy comparability. AI evaluations should follow validated structures and cite retained
+evidence. Candidate and recruiter identities should be separated, sensitive internal material
+should not be exposed, and untrusted code should not run inside the main application service.
+The review reveals that individual solutions exist, but complete traceability across the hiring
+workflow remains a gap. This project addresses that gap by integrating structured assessment,
+practical tasks, resume intelligence, candidate self-service, AI-assisted evaluation, and human
+review within one controlled architecture. It does not claim that integration proves fairness or
+job-performance validity. Those claims require organizational pilots, representative participants,
+adverse-impact analysis, accessibility evaluation, and longitudinal outcome data.
+
+========== PAGE 20 ==========
+10
+2.5. Problem Definition
+The problem is to create an integrated technical-hiring environment that connects job
+requirements, candidate information, structured assessment, practical work, and reviewable
+evaluation without allowing automation to become an unsupported employment decision. The
+environment must serve multiple organizations while preventing one organization from accessing
+another organization’s jobs, candidates, assessments, interviews, or reports. It must also maintain
+a distinct candidate identity boundary so that applicants cannot access recruiter-only scoring
+criteria, hidden tests, integrity records, recommendations, or credentials.
+The work is to be performed through a modular web architecture. Recruiters define jobs and
+competencies, create versioned questions, publish assessments, invite candidates, and inspect
+evidence-linked reports. Candidates use a separate portal to manage appropriate personal
+information, access invitations, provide consent, complete resumable interviews, submit code and
+system-design work, and make privacy requests. A relational database maintains authoritative
+state and immutable assessment records. Background processing separates long-running or risky
+activity from normal API requests. Untrusted code is executed only in restricted containers with
+network and resource controls.
+Artificial intelligence is applied only to defined support functions. A local DistilBERT service
+classifies resume PDFs into 24 job families. Language-model providers assist role analysis,
+assessment content, bounded follow-up generation, and structured evaluation. Provider outputs
+are validated before persistence, failures produce safe fallback behaviour, and evaluation findings
+are linked to stored candidate evidence. Model, provider, prompt, confidence, and usage
+information are retained where relevant. Human recruiters review the resulting information and
+remain responsible for the decision.
+The project will not infer personality, honesty, emotion, protected characteristics, or future
+performance from a person’s face or voice. It will not automatically issue offers or rejections,
+claim universal legal compliance, expose hidden coding tests, or present resume classification as
+proof of suitability. Video interviews, biometric emotion analysis, production cloud
+orchestration, production-scale observability, and longitudinal employment-validity studies are
+outside the present implementation.
+Success is defined by an operational and testable workflow, correct access boundaries,
+recoverable interview state, secure practical assessment, measured classifier results, traceable
+evaluations, and explicit limitations. Fairness and legal compliance remain continuing
+organizational responsibilities requiring representative data, policy, monitoring, and
+jurisdiction-specific review.
+
+========== PAGE 21 ==========
+11
+2.6. Goals/Objectives
+The overall goal is to design, implement, and verify a secure AI-assisted hiring platform that
+improves the structure and traceability of technical recruitment while retaining accountable
+human control. The measurable objectives are:
+1.
+Centralized workflow: implement organization-scoped management of jobs, skills,
+candidates, questions, assessments, interviews, evaluations, reports, notifications, usage, and
+audit information in one relational system.
+2.
+Structured 
+assessment: 
+support 
+technical, 
+coding, 
+behavioural, 
+scenario, 
+and
+system-design questions with difficulty, expected answers, rubrics, weights, required skills,
+and immutable published versions.
+3.
+Controlled AI assistance: route server-side AI operations through defined providers,
+require schema-valid output, record provider and usage metadata, and use fallback
+behaviour when generated output is unavailable or invalid.
+4.
+Practical skill evidence: collect code and system-design submissions; run JavaScript,
+TypeScript, and Python code outside the main API in short-lived Docker containers with
+disabled networking, restricted resources, and hard timeouts.
+5.
+Measured resume intelligence: extract text from PDF resumes and assign one of 24
+job-family labels using CVerify. Prevent document leakage during dataset splitting and
+report held-out accuracy, weighted F1-score, and macro F1-score.
+6.
+Explainable evaluation: produce competency-level scores, confidence, strengths,
+weaknesses, and recommendations linked to stored answers or submissions; allow
+authorized recruiters to override a recommendation with a recorded reason.
+7.
+Security and privacy: enforce separate candidate and recruiter sessions, HTTP-only
+cookies, role-based permissions, tenant-scoped queries, hashed tokens, request validation,
+audit records, controlled files, and candidate export or deletion request functions.
+8.
+Usability and resilience: provide responsive desktop and mobile interfaces, clear status
+information, consent handling, saved interview progress, local draft recovery, and safe
+recovery from expired recruiter sessions.
+9.
+Verification: validate major behaviour through automated unit, integration, Python, and
+browser tests; check database migrations; and document any feature that depends on
+external production credentials or infrastructure.
+These objectives are concrete and can be validated through implemented functions, database
+constraints, security tests, model metrics, browser workflows, and retained evidence. They
+measure the engineering result without making unsupported claims that the platform
+independently predicts future job performance or guarantees fair hiring.
+
+========== PAGE 22 ==========
+22
+CHAPTER 3
+DESIGN FLOW / PROCESS
+3.1 Design Methodology
+The project follows an iterative, modular software-engineering process. Requirements are translated into user roles,
+workflows, and quality attributes. The system is divided into independently testable services with explicit API
+boundaries. Data ownership, authorization, and immutable assessment records are treated as foundational design
+constraints.
+The main stages are requirements analysis, alternative evaluation, high-level architecture, detailed data and interface
+design, component implementation, integration, verification, and documentation. Each stage produces reviewable
+artefacts such as requirement lists, entity definitions, API contracts, state transitions, test cases, and operational notes.
+3.2 Functional Requirements
+ID
+Requirement
+Actor
+FR-01
+Create and manage organization-scoped jobs and required skills
+Recruiter
+FR-02
+Create questions with type, difficulty, expected answer, rubric,
+weight, and skill mapping
+Recruiter
+FR-03
+Publish immutable, versioned assessments
+Recruiter
+FR-04
+Invite candidates and track application / assessment status
+Recruiter
+FR-05
+Provide separate candidate access and consent workflow
+Candidate
+FR-06
+Save interview progress and allow resumable completion
+Candidate
+FR-07
+Generate bounded adaptive follow-up questions
+Interview service
+FR-08
+Collect coding and system-design submissions
+Candidate
+FR-09
+Execute supported code in restricted containers
+Code runner
+FR-10
+Classify PDF resumes into defined job families
+CVerify service
+FR-11
+Generate structured, evidence-linked evaluation reports
+AI evaluation service
+FR-12
+Allow authorized reviewer overrides with recorded reasons
+Recruiter
+FR-13
+Support candidate export / deletion requests
+Candidate / Admin
+FR-14
+Record audit events and usage information
+System
+
+========== PAGE 23 ==========
+23
+3.3 Non-Functional Requirements
+Category
+Requirement
+Security
+Separate sessions, RBAC, tenant-scoped access, hashed tokens, validated input, protected files
+Privacy
+Consent-aware candidate flows, controlled retention, export and deletion request functions
+Reliability
+Recoverable interview state, safe fallback for AI failures, durable database state
+Performance
+Background processing for long-running work; bounded AI and code-execution time
+Scalability
+Modular services, queue-based work, organization-scoped data model
+Usability
+Responsive recruiter and candidate interfaces with clear status and progress
+Traceability
+Versioned assessments, stored evidence, model/provider metadata, and audit records
+Maintainability
+Defined service boundaries, API contracts, migrations, and automated tests
+3.4 Constraints and Considerations
+Technical constraints
+The reported stack includes Next.js, NestJS, PostgreSQL, Redis, FastAPI, and Docker. External AI providers may
+impose availability, latency, cost, and rate limits. The local resume classifier reduces dependence on a remote provider
+for that classification task. Code execution is treated as untrusted workload and is separated from the primary API.
+Economic constraints
+The project must balance development time, hosting resources, model inference cost, storage, and test infrastructure.
+Queue-based processing and provider abstraction help manage variable workloads. A production deployment would
+require a separate operational budget for monitoring, backups, secure object storage, and availability.
+Ethical, social, and legal constraints
+Recruitment decisions affect employment opportunities. Automated outputs must be job-related, reviewable, and
+subject to human judgement. Candidate communication, accessibility, privacy, bias monitoring, and correction
+processes matter. Applicable employment, privacy, accessibility, and AI laws vary by jurisdiction; technical controls
+alone do not establish legal compliance.
+3.5 Alternative Design Evaluation
+Design choice
+Alternative A
+Alternative B
+Selected approach and reason
+Application structure
+Single monolith
+Modular services
+Clear boundaries for AI, resume
+classification, queues, and code execution
+Resume analysis
+Keyword matching
+Transformer classifier
+DistilBERT provides contextual text
+representation; output remains advisory
+AI provider
+Hard-coded provider
+Provider abstraction
+Reduces provider lock-in and supports
+configuration / fallback
+Code execution
+Inside API process
+Isolated containers
+Separates untrusted code from the main
+service
+Assessment content
+Mutable questions
+Versioned snapshot
+Preserves candidate comparability and
+historical traceability
+Long-running work
+Synchronous API
+Background queue
+Avoids blocking normal requests
+
+========== PAGE 24 ==========
+24
+3.6 High-Level System Architecture
+The platform is organized around recruiter and candidate web applications, a backend API, persistence and queue
+infrastructure, AI-related services, and an isolated code-execution environment. The public product overview
+describes a seven-stage candidate-intelligence flow: Candidate, Interview, Signals, Skills, Graph, Evaluation, and
+Recommendation.
+Layer / component
+Technology or responsibility
+Recruiter web application
+Next.js interface for jobs, candidate pipelines, assessments, reports, and review
+Candidate portal
+Separate experience for invitations, consent, profile/resume, interviews, and privacy requests
+Backend API
+NestJS services for authentication, organization scope, jobs, assessment state, evidence, reports, and
+audit
+Primary data store
+PostgreSQL for authoritative relational records and immutable assessment snapshots
+Queue / cache
+Redis for background work coordination and transient state
+Resume intelligence
+FastAPI-hosted CVerify DistilBERT classifier for 24 job families
+AI gateway
+Provider-flexible server-side interface for role analysis, question generation, follow-ups, and evaluation
+Code execution
+Short-lived Docker containers for JavaScript, TypeScript, and Python with restricted resources and
+networking
+3.7 Data Flow and Operating Workflow
+1. Recruiter authentication: a recruiter signs in and is associated with an organization and permitted role.
+2. Job setup: the recruiter creates a job, defines competencies, and maps skills to assessment content.
+3. Assessment authoring: questions are prepared with type, difficulty, rubric, expected answer, weights, and skill
+mappings.
+4. Publishing: the assessment is published as an immutable version.
+5. Candidate invitation: a protected invitation is issued; the candidate enters through a separate portal and completes
+consent steps.
+6. Interview: the candidate answers questions; progress is saved and bounded follow-ups may be generated.
+7. Practical work: coding and system-design submissions are collected; code is sent to an isolated runner.
+8. Evidence processing: answers, submissions, test outcomes, and metadata are associated with competencies.
+9. Evaluation: AI services produce schema-validated findings linked to stored evidence; failures use safe fallback
+behaviour.
+10. Recruiter review: an authorized recruiter inspects the report and may record an override reason.
+11. Candidate privacy: supported export or deletion requests are processed under organizational policy.
+3.8 Core Data Model
+The relational model is organized around tenant-scoped records and explicit relationships between jobs, skills,
+assessment versions, candidates, interview sessions, evidence, and evaluations. Exact physical table names and
+column definitions should be taken from the implementation migrations.
+Entity
+Purpose / relationship
+Organization
+Tenant boundary for recruiter-owned jobs, candidates, assessments, reports, and usage
+
+========== PAGE 25 ==========
+25
+Entity
+Purpose / relationship
+User / Membership
+Recruiter identity, organization membership, and role permissions
+Job / Skill
+Role definition and competencies required for the role
+Question / Assessment Version
+Question content, rubric, skill mapping, and immutable published snapshot
+Candidate / Invitation
+Candidate profile, application context, and protected invitation lifecycle
+Interview Session / Response
+Interview state, ordered questions, candidate answers, and resumable progress
+Submission / Execution Result
+Code or system-design submission and execution evidence
+Resume Classification
+Extracted resume metadata, predicted job-family label, and model result
+Evaluation / Evidence Link
+Competency score, confidence, rationale, and source evidence references
+Audit Event / Privacy Request
+Security-relevant actions and candidate data requests
+3.9 Algorithms and Processing Logic
+Adaptive interview flow
+The interview engine uses role context, the current question, and the candidate response to determine whether a
+bounded clarification or follow-up is useful. Generated output is validated against an expected schema. The process is
+constrained by the assessment plan so adaptation does not become unlimited or unrelated.
+Input: role context, published assessment snapshot, current question, candidate response
+1. Store the response against the active interview session.
+2. Retrieve the question rubric and mapped competency.
+3. Request a follow-up only when clarification or deeper evidence is useful.
+4. Validate the generated question against schema, scope, and follow-up limits.
+5. If generation fails or output is invalid, use the configured safe fallback.
+6. Store the next state and continue.
+Resume classification
+CVerify extracts text from a PDF resume and passes the text to a locally served DistilBERT classifier. The model
+assigns one of 24 job-family labels. Its output is an organizational aid, not a standalone hiring decision. Performance is
+reported using held-out accuracy, weighted F1, and macro F1.
+Evidence-linked evaluation
+The evaluation process gathers candidate answers, code submissions, system-design material, and test outcomes. A
+provider-flexible AI service returns structured findings such as competency scores, confidence, strengths, weaknesses,
+and recommendations. The application validates the structure and associates findings with stored evidence. Reviewers
+can inspect the source material and record a reason when overriding a recommendation.
+Restricted code execution
+Supported code is sent to a separate worker and run in a short-lived Docker container. The design specifies disabled
+networking, restricted resources, and hard timeouts. Hidden tests and internal execution details remain outside the
+candidate-facing interface. Containerization reduces exposure but does not eliminate every sandbox risk; production
+use requires hardening and security review.
+
+========== PAGE 26 ==========
+26
+3.10 Security Architecture
+Security controls include separate recruiter and candidate sessions, role-based permissions, organization-scoped
+database access, HTTP-only cookies, hashed invitation/access tokens, validated requests, controlled file access,
+immutable assessment snapshots, and audit records. Authorization must be enforced at the server boundary, not
+merely by hiding interface elements.
+Tenant isolation means recruiter-facing queries must be scoped to the authenticated organization. Candidate sessions
+are separate so candidates cannot access hidden scoring criteria, internal recommendations, integrity records, or
+recruiter credentials.
+3.11 Testing Strategy
+Unit tests check validation and business rules. Integration tests examine API, database, queue, and service
+interactions. Model evaluation uses a held-out document-level split. Python and browser tests cover service behaviour
+and end-to-end journeys. Security tests focus on role boundaries, tenant isolation, token handling, input validation, file
+access, and code-runner restrictions.
+The supplied project material identifies verification areas but does not provide a complete execution log, coverage
+percentage, or pass/fail evidence for every case. Chapter 4 therefore distinguishes measured model results from test
+cases requiring final execution evidence.
+
+========== PAGE 27 ==========
+27
+CHAPTER 4
+RESULTS ANALYSIS AND VALIDATION
+4.1 Implementation Overview
+The implementation is described as a multi-tenant web application with separate recruiter and candidate surfaces. The
+recruiter side supports job and skill definition, question and assessment authoring, candidate invitations, interview
+oversight, evaluation review, and reporting. The candidate side supports passwordless access, saved progress, resume
+management, and privacy-request functions.
+The backend uses NestJS, PostgreSQL as the primary relational database, and Redis for background work. Next.js
+provides the web interface. FastAPI serves the local CVerify classifier. Docker provides restricted execution
+environments for supported coding languages. AI-provider calls are routed through a server-side abstraction.
+4.2 Main Application Modules
+Module
+Responsibility described in project material
+Recruiter workspace
+Manage jobs, skills, candidates, assessment content, invitations, evaluations, reports, and audit
+information
+Candidate portal
+Passwordless access, resume management, consent, saved interview progress, submissions, and privacy
+requests
+Assessment management
+Question bank, rubrics, skill mapping, difficulty, weights, and immutable published versions
+Adaptive interview engine
+Role-aligned questions, bounded follow-ups, stored responses, and resumable state
+Coding assessment
+Candidate code submission and execution in restricted Docker containers
+System-design assessment
+Collection of candidate design work for reviewer evaluation
+CVerify resume intelligence
+PDF text extraction and DistilBERT classification into 24 job families
+AI evaluation / recruiter copilot
+Structured competency findings, evidence links, confidence, strengths, weaknesses, and
+recommendations
+Security and governance
+Role permissions, tenant scoping, token hashing, audit records, and privacy request functions
+4.3 Resume Classifier Results
+The CVerify resume-intelligence service uses a locally served DistilBERT classifier covering 24 job families. The
+supplied project report records the following held-out test-set results:
+Metric
+Reported result
+Interpretation
+Accuracy
+86.35%
+Proportion of held-out examples classified
+correctly
+Weighted F1-score
+85.36%
+F1 averaged across classes with support-based
+weighting
+Macro F1-score
+79.47%
+Unweighted mean of class-wise F1 scores; each
+class has equal importance
+The difference between weighted and macro F1 indicates that equally weighted class performance is lower than the
+support-weighted result. Per-class precision, recall, support, and confusion patterns should be inspected before live
+use. The supplied report does not provide the full confusion matrix, dataset size, per-class scores, or confidence
+intervals.
+
+========== PAGE 28 ==========
+28
+The report states that the data split was performed at document level to avoid leakage between chunks derived from
+the same resume. This is important because fragments from one document should not appear in both training and
+held-out sets.
+4.4 Evaluation and Evidence Traceability
+The evaluation design connects findings to stored candidate evidence. A competency result is intended to reference
+the relevant answer, code submission, design response, or execution outcome. Recruiters can inspect source material
+rather than relying only on a generated summary.
+Structured output validation is applied before AI-generated evaluation is persisted. Provider, prompt, confidence, and
+usage information are retained where relevant. If a provider fails or returns invalid output, safe fallback behaviour is
+expected. A human reviewer remains responsible for the final employment decision.
+4.5 Verification Matrix
+Test ID
+Area
+Validation objective
+Evidence to attach
+T-01
+Authentication
+Recruiter and candidate sessions remain
+separate
+Login/logout test log and screenshots
+T-02
+Authorization
+Role permissions prevent unauthorized
+actions
+API authorization test results
+T-03
+Tenant isolation
+One organization cannot access another
+organization's records
+Cross-tenant negative test log
+T-04
+Assessment versioning
+Published snapshot remains unchanged
+after later edits
+Database/API test evidence
+T-05
+Interview recovery
+Candidate resumes saved interview
+without losing answers
+Browser test and session record
+T-06
+Adaptive follow-up
+Follow-up is bounded and
+schema-validated; fallback works
+AI service test log
+T-07
+Code execution
+Container has disabled network, resource
+limits, and timeout enforcement
+Sandbox configuration and execution logs
+T-08
+Resume classifier
+Held-out metrics are reproducible
+Evaluation script, split manifest, metrics
+T-09
+Evidence report
+Findings link to stored candidate
+evidence
+Report screenshot and evidence references
+T-10
+Privacy request
+Candidate export/deletion request is
+recorded
+Request lifecycle evidence
+T-11
+Responsive UI
+Key flows work at desktop and mobile
+widths
+Browser screenshots
+T-12
+Database migrations
+Migrations apply and preserve expected
+constraints
+Migration output / test log
+Important: the supplied project material specifies verification scope but does not include individual test execution logs
+or pass/fail counts. This matrix is a validation checklist, not a fabricated claim that every test has passed. Before
+submission, run the cases and replace the evidence column with actual results and screenshots.
+4.6 User Interface and Workflow Observations
+The public project website describes a seven-stage candidate-intelligence sequence: Candidate, Interview, Signals,
+Skills, Graph, Evaluation, and Recommendation. It also presents adaptive AI interviews, coding assessment,
+evidence-backed skill profiles, integrity and trust signals, recruiter AI copilot, and multi-tenant organization support.
+These are product descriptions and should not be interpreted as measured performance results.
+
+========== PAGE 29 ==========
+29
+The landing page displays promotional figures such as average signal score, faster hiring, and candidate accuracy.
+Since the supplied report does not provide an experimental protocol or dataset for those figures, they are not treated as
+validated academic results.
+4.7 Security and Privacy Analysis
+The design includes separate recruiter and candidate sessions, role-based permissions, organization-scoped queries,
+hashed tokens, HTTP-only cookies, request validation, audit records, controlled files, and candidate export or deletion
+request functions. Immutable assessment snapshots support comparability and auditability. Restricted code execution
+reduces exposure of the main API to untrusted submitted programs.
+These controls reduce identifiable risks but do not prove that the platform is invulnerable or legally compliant in every
+jurisdiction. Production deployment requires penetration testing, secure configuration review, secret management,
+backup and recovery tests, retention policies, incident response, and monitoring.
+4.8 Limitations of Evaluation
+The available report provides aggregate resume-classification metrics but not dataset composition, per-class metrics,
+confidence intervals, confusion matrix, or external validation. It also does not provide full load-test results, measured
+latency, uptime, automated test coverage, or independent security assessment.
+The project has not established that recommendations predict future job performance, eliminate bias, or guarantee
+compliance with employment and privacy laws. Those conclusions require representative field studies, subgroup
+fairness analysis, accessibility evaluation, legal review, and longitudinal outcomes.
+
+========== PAGE 30 ==========
+30
+CHAPTER 5
+CONCLUSION AND FUTURE WORK
+5.1 Conclusion
+The AI Interview Assessment Platform addresses fragmentation in technical recruitment by connecting role
+requirements, structured assessments, candidate interviews, practical submissions, resume intelligence, and
+evidence-linked evaluation within a unified multi-tenant workflow. It is designed to support recruiters and candidates
+through separate interfaces and access boundaries.
+The project combines Next.js, NestJS, PostgreSQL, Redis, FastAPI, DistilBERT, and restricted Docker execution. Its
+design emphasizes immutable assessment snapshots, organization-scoped data access, separate recruiter and candidate
+sessions, schema-validated AI outputs, audit records, and human review. The CVerify resume classifier reports
+86.35% held-out accuracy, 85.36% weighted F1-score, and 79.47% macro F1-score across 24 job families.
+The central contribution is integration of multiple forms of candidate evidence into a traceable workflow. AI is used as
+decision support rather than an autonomous hiring authority. The system can organize evidence and generate
+reviewable recommendations, but recruiters remain accountable for final decisions.
+5.2 Achievement Against Objectives
+Objective
+Outcome described in project documentation
+Centralized workflow
+Organization-scoped jobs, skills, candidates, assessments, interviews, evaluations, reports, and audit
+information
+Structured assessment
+Question types, rubrics, weights, skill mapping, and immutable published versions
+Controlled AI assistance
+Provider abstraction, schema validation, metadata retention, and fallback behaviour
+Practical skill evidence
+Coding and system-design submissions; restricted Docker execution
+Resume intelligence
+CVerify classification into 24 job families with reported held-out metrics
+Explainable evaluation
+Competency findings linked to evidence; reviewer overrides can include reasons
+Security and privacy
+Separate sessions, RBAC, tenant scoping, hashed tokens, audit records, and privacy functions
+Usability and resilience
+Responsive interfaces, consent, saved progress, draft recovery, and session recovery
+Verification
+Unit, integration, Python, and browser test areas identified; execution evidence to be attached
+5.3 Limitations and Deviations
+Aggregate classifier metrics are insufficient to establish performance across every job family or candidate population.
+The absence of per-class metrics and subgroup analysis limits conclusions about minority-class behaviour and
+fairness. The project also lacks longitudinal evidence linking recommendations to later job performance.
+Production-grade activities outside the documented scope include production cloud orchestration, comprehensive
+observability, external security certification, and long-term field validation. The project does not use face or voice
+emotion analysis and does not automatically issue offers or rejections. These are deliberate boundaries intended to
+avoid unsupported inferences and preserve human accountability.
+5.4 Future Work
+1. Expand model evaluation with dataset characteristics, per-class precision and recall, confusion matrices, confidence
+intervals, calibration, and reproducible split manifests.
+
+========== PAGE 31 ==========
+31
+2. Conduct fairness studies using appropriate governance and lawful data collection; monitor error rates, proxy effects,
+and distribution shifts.
+3. Run organizational pilots with representative recruiters and candidates; measure usability, completion, and
+operational outcomes.
+4. Validate job relevance through structured job analysis and review of question rubrics and skill mappings.
+5. Improve accessibility through keyboard-navigation tests, screen-reader checks, and candidate experience studies.
+6. Strengthen production operations with secure object storage, secrets management, observability, backups, rate
+limiting, and incident response.
+7. Harden code execution through independent sandbox review and stronger isolation for high-risk workloads.
+8. Improve explainability through evidence references, uncertainty indicators, reviewer feedback, and traceable
+version histories.
+9. Assess long-term validity by comparing platform-generated evidence with subsequent job outcomes under ethical
+study design and consent.
+5.5 Final Remarks
+The project demonstrates an engineering approach to AI-assisted technical recruitment that prioritizes structured
+evidence, security boundaries, and human oversight. Its value should be judged through reproducible technical testing,
+candidate-centred evaluation, and responsible field validation—not promotional claims or automated scores alone.
+
+========== PAGE 32 ==========
+32
+REFERENCES
+1. Black, J. S., & van Esch, P. (2020). AI-enabled recruiting: What is it and how should a manager use it? Business
+Horizons, 63(2), 215–226.
+2. Campion, M. A., Palmer, D. K., & Campion, J. E. (1997). A review of structure in the selection interview.
+Personnel Psychology, 50(3), 655–702.
+3. Devlin, J., Chang, M.-W., Lee, K., & Toutanova, K. (2019). BERT: Pre-training of deep bidirectional transformers
+for language understanding. Proceedings of NAACL-HLT.
+4. European Parliament and Council of the European Union. (2024). Regulation (EU) 2024/1689 laying down
+harmonised rules on artificial intelligence (Artificial Intelligence Act).
+5. Köchling, A., & Wehner, M. C. (2020). Discriminated by an algorithm: A systematic review of discrimination and
+fairness by algorithmic decision-making in HR recruitment and development. Business Research, 13, 795–848.
+6. National Institute of Standards and Technology. (2023). Artificial Intelligence Risk Management Framework (AI
+RMF 1.0), NIST AI 100-1.
+7. Raghavan, M., Barocas, S., Kleinberg, J., & Levy, K. (2020). Mitigating bias in algorithmic hiring: Evaluating
+claims and practices. Proceedings of the ACM Conference on Fairness, Accountability, and Transparency.
+8. Sanh, V., Debut, L., Chaumond, J., & Wolf, T. (2019). DistilBERT, a distilled version of BERT: Smaller, faster,
+cheaper and lighter. NeurIPS EMC2 Workshop.
+9. Schmidt, F. L., & Hunter, J. E. (1998). The validity and utility of selection methods in personnel psychology.
+Psychological Bulletin, 124(2), 262–274.
+10. Tambe, P., Cappelli, P., & Yakubovich, V. (2019). Artificial intelligence in human resources management:
+Challenges and a path forward. California Management Review, 61(4), 15–42.
+11. World Economic Forum. (2025). The Future of Jobs Report 2025. World Economic Forum.
+12. 
+AI 
+Hiring 
+Intelligence 
+Platform. 
+(2026). 
+Public 
+product 
+overview 
+and 
+feature 
+descriptions.
+https://ai-interview-assessment-5ew9.vercel.app/ (accessed 14 November 2026).
+13. Project team. (2026). AI Interview Assessment Platform: Project report material supplied for completion.
+Chandigarh University, July 2026.
+
+========== PAGE 33 ==========
+33
+APPENDIX A
+ABBREVIATIONS AND SYMBOLS
+Abbreviation / symbol
+Meaning
+AI
+Artificial Intelligence
+API
+Application Programming Interface
+ATS
+Applicant Tracking System
+JWT
+JSON Web Token
+NLP
+Natural Language Processing
+OCR
+Optical Character Recognition
+RBAC
+Role-Based Access Control
+REST
+Representational State Transfer
+SaaS
+Software as a Service
+UI
+User Interface
+P
+Precision of a classifier
+R
+Recall of a classifier
+F1
+Harmonic mean of precision and recall
+n
+Number of observations or documents
+%
+Percentage
+
+========== PAGE 34 ==========
+34
+APPENDIX B
+USER MANUAL
+This manual describes the intended high-level workflow from the project scope and public product overview. Exact
+button labels, account setup values, and deployment URLs may differ in the running build. Add screenshots from the
+actual application before submission.
+B.1 Recruiter Workflow
+1. Open the deployed recruiter application and sign in using an authorized recruiter account.
+2. Select or confirm the organization workspace. Verify the correct organization before creating records.
+3. Create a job and enter the role description, required skills, and competency expectations.
+4. Open assessment management and create questions. Select question type and difficulty, map each question to skills,
+and define its rubric, expected answer, and weight.
+5. Review and publish the assessment. Treat the published version as a fixed snapshot for candidates invited to it.
+6. Invite candidates using the supported invitation workflow. Share only candidate-specific access links through an
+approved channel.
+7. Monitor candidate progress from the recruiter workspace.
+8. After completion, open the evaluation report. Inspect competency findings, confidence, strengths, weaknesses, and
+evidence references.
+9. If professional judgement differs from the recommendation, record the review decision and a clear reason using the
+supported override function.
+10. Use audit and privacy-request functions according to organizational policy.
+B.2 Candidate Workflow
+1. Open the invitation link received from the recruiting organization.
+2. Verify the invitation context and complete the consent or acknowledgement step shown by the application.
+3. Review profile information and upload or manage the resume if requested.
+4. Start the interview, read each question carefully, and submit answers. Use save/resume if available.
+5. Complete any coding or system-design task using the instructions and permitted tools displayed.
+6. Review the entered response before final submission.
+7. For a privacy export or deletion request, use the candidate privacy function or contact the organization through its
+stated channel.
+B.3 Administrator and Operational Guidance
+1. Create and maintain organization memberships with least-privilege roles.
+2. Protect application secrets, database credentials, AI-provider keys, and storage credentials; never place secrets in
+client-side code.
+3. Monitor API, queue, classifier, and code-runner health. Review failures and audit events.
+
+========== PAGE 35 ==========
+35
+4. Back up the database and verify restoration procedures. Apply migrations through the documented deployment
+process.
+5. Review retention, deletion, access, incident response, and candidate-notice policies before production use.
+B.4 Troubleshooting
+Issue
+Suggested action
+Invitation link expired or invalid
+Ask the recruiter to verify invitation status and issue a fresh authorized link
+Interview progress not visible
+Refresh once, sign in again if requested, and contact support if saved progress is not restored
+Resume upload rejected
+Check supported file type and size limits shown by the application; retry with a readable PDF
+AI-generated step unavailable
+Use the displayed retry or fallback path; do not treat missing AI output as a negative candidate result
+Code execution times out
+Review task constraints and report repeated failures to the project administrator
+Access denied
+Verify active account and organization; do not attempt to bypass role or tenant restrictions
+
+========== PAGE 36 ==========
+36
+APPENDIX C
+SAMPLE TEST CASE FORMAT
+Use this template to record actual verification evidence. Fill the observed result only after running the test on the final
+build.
+Field
+Entry
+Test ID
+Feature / module
+Preconditions
+Test data
+Steps performed
+Expected result
+Actual result
+Status (Pass / Fail / Blocked)
+Evidence filename / screenshot
+Tester and date
+
+========== PAGE 37 ==========
+37
+APPENDIX D
+TEAM CONTRIBUTION RECORD
+The following team list is reproduced from the supplied report. Confirm the final contribution allocation and missing
+UID with the supervisor before submission.
+Team member
+University UID
+Aryan Sharma
+23BCS12698
+Piyush Sharma
+23BCS13756
+Taniya
+23BCS12605
+Rishab Bahri
+23BCS12848
+Thanda Shiva Kumar
+Not provided in supplied report
+
+========== PAGE 38 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 1
+Supplementary Technical Documentation
+Purpose and relationship to the original report
+This supplementary section extends the supplied 37-page report without replacing or reformatting its original cover, certificate,
+acknowledgement, chapters, references, appendices or Chandigarh University branding. The original pages are retained
+unchanged. The additional pages provide implementation-level detail for the current project description shared by the team.
+Project baseline used in this supplement
+The current implementation baseline recorded here is the team-provided stack and feature list: Next.js App Router, React, Tailwind
+CSS, NestJS, Prisma, PostgreSQL on Supabase, Redis, BullMQ, Supabase Storage, Resend, JWT and Passport authentication,
+Google OAuth, DistilBERT-based CVerify classification, PyTorch, Tesseract OCR, Playwright and Jest. Details not confirmed by
+the team are explicitly marked as not verified.
+Evidence and reporting convention
+The reported test outcomes in this supplement are team-provided execution summaries: 6 of 6 end-to-end tests, 77 of 77 API tests
+and 11 of 11 worker tests passed. The supplement does not represent these counts as independently audited CI logs. The older
+report's content remains part of the submitted source document; where an older architectural description conflicts with the latest
+implementation notes, the latest team-provided baseline is used for this supplementary section.
+Documentation note: implementation details are based on the supplied report and team-provided project notes; verify against the current repository
+before external publication.
+
+========== PAGE 39 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 2
+Supplementary Contents and Reading Guide
+How to read the added material
+The original report remains pages 1–37. This supplement begins after the original final page and is organised as technical
+appendices. It expands system requirements, architecture, module behaviour, data flow, security, test strategy, test cases,
+deployment considerations, user operations and limitations.
+Appendix E — Product scope and requirements
+Defines user roles, functional requirements, non-functional requirements, assumptions and project boundaries.
+Appendix F — Architecture and implementation
+Documents the frontend, backend, data persistence, AI classification, storage, email and background worker responsibilities.
+Appendix G — Workflows and interface behaviour
+Describes recruiter and candidate journeys, magic-link access, interview lifecycle and file operations.
+Appendix H — Testing and quality assurance
+Records the supplied test summary, test cases, defect handling, regression strategy and acceptance criteria.
+Appendix I — Operations and user guidance
+Provides setup concepts, operating procedures, troubleshooting, privacy considerations, constraints and future improvements.
+Documentation note: implementation details are based on the supplied report and team-provided project notes; verify against the current repository
+before external publication.
+
+========== PAGE 40 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 3
+E.1 Problem Statement and Project Motivation
+Recruitment workflow challenges
+Recruitment teams may receive many resumes for a role and must identify relevant candidates, coordinate interview availability,
+communicate access instructions and maintain consistent evaluation records. When these activities are spread across email,
+spreadsheets and separate file stores, recruiters spend time switching tools and can lose visibility of candidate progress.
+Need for a unified platform
+The project addresses this coordination problem by combining candidate intelligence, resume handling, interview management
+and recruiter-facing operations in one application. The platform is intended to support a structured workflow rather than make an
+autonomous hiring decision.
+Expected value
+Centralised records improve traceability. Automated resume classification can help organise incoming profiles. A candidate portal
+reduces repeated manual communication. A queue-based worker can process background tasks without blocking interactive
+requests. Human recruiters remain responsible for reviewing evidence and making hiring decisions.
+
+========== PAGE 41 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 4
+E.2 Objectives and Scope
+Primary objectives
+The objectives are to provide a recruiter command centre, support recruiter registration and sign-in, provide passwordless
+candidate access through time-limited magic links, manage resume files, create and administer interviews, and classify resumes
+into job-family categories using the CVerify AI component.
+In-scope capabilities
+The current scope described by the team includes landing-page candidate-intelligence visualisation; recruiter authentication
+including Google OAuth; protected recruiter dashboard; candidate magic-link email; candidate portal; resume upload, download
+and deletion; interview creation and candidate access; Supabase private storage with signed URLs; CVerify classification; and
+BullMQ background processing.
+Out-of-scope or unverified items
+Automatic final candidate selection, legally binding suitability decisions, production-scale performance guarantees, and
+Docker-based isolated execution are not claimed here. Docker was described as unavailable in the current sandbox, so its use in
+the submitted project must be verified separately before it is listed as an implemented deployment or execution feature.
+
+========== PAGE 42 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 5
+E.3 Stakeholders and User Roles
+Recruiter
+The recruiter is the primary administrative user. The recruiter signs in, accesses a protected dashboard, manages interview
+records, initiates candidate access and reviews candidate information. Recruiter permissions should be enforced by backend
+authentication and authorisation checks, not only by hiding interface elements.
+Candidate
+The candidate receives a magic-link email, opens a candidate portal and uses the available features to upload or manage a
+resume, view interview information and access the interview workflow. Candidate access is intended to be time-limited and
+one-time for the magic-link token.
+System operator and development team
+The operator monitors application availability, worker processing and email/storage integrations. Developers maintain frontend,
+backend, AI and test modules. Access to logs and stored resumes should be restricted to authorised personnel.
+
+========== PAGE 43 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 6
+E.4 Functional Requirements
+Authentication requirements
+The system shall support recruiter account creation and sign-in. It shall support Google OAuth where configured. Protected
+recruiter routes and backend operations shall require a valid authenticated identity. Candidate login shall use a magic link sent by
+email, with a stated expiry of 15 minutes and one-time use.
+Interview and candidate requirements
+The recruiter shall be able to create an interview and provide an access link to the candidate. The candidate shall be able to enter
+the candidate portal, view relevant interview information and proceed through the interview start flow. The platform shall associate
+candidate and interview records consistently.
+Resume and AI requirements
+The candidate portal shall support resume upload, download and deletion according to permissions. Files shall be stored in a
+private storage bucket and downloads shall use signed URLs. CVerify shall classify resumes across 24 job families as described in
+the source report and current project notes.
+
+========== PAGE 44 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 7
+E.5 Non-Functional Requirements
+Security
+Authentication tokens and magic-link secrets must not be exposed in client-visible logs. Private resumes should not be publicly
+addressable. Signed download URLs should be short-lived where supported. Sensitive configuration belongs in environment
+variables or managed secrets, not source control.
+Reliability and usability
+Interactive pages should communicate loading, success and failure states. Background tasks should tolerate transient failures and
+avoid silently losing work. Candidate-facing wording should make the next action clear, especially when a link expires or has
+already been used.
+Maintainability and compatibility
+Frontend and backend responsibilities should remain separated. API request validation should be centralised using schemas.
+Automated tests should cover high-risk flows. The application should be tested against the supported browser and runtime
+versions used by the project team.
+
+========== PAGE 45 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 8
+E.6 System Context and High-Level Architecture
+Architecture overview
+The application is organised into a browser-based Next.js frontend, a NestJS backend, a PostgreSQL database accessed through
+Prisma, Redis-backed queue infrastructure, Supabase Storage for private resume files, Resend for transactional email, and a
+separate AI classification capability based on DistilBERT and PyTorch.
+Request flow
+The browser sends authenticated or public requests to the backend API. The backend validates input, checks identity and
+permissions, reads or writes application records through Prisma, and calls external services where needed. Long-running work can
+be placed on a BullMQ queue and processed by a worker.
+Separation of responsibilities
+The frontend owns presentation and user interaction. The backend owns business rules and access control. PostgreSQL stores
+structured records. Object storage stores file bytes. Redis supports queue coordination. The AI component provides classification
+output that should be presented as decision support rather than an unquestionable hiring verdict.
+
+========== PAGE 46 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 9
+E.7 Frontend Architecture
+Framework and rendering
+The team reports using Next.js 16 App Router with React 19 and Tailwind CSS 4. App Router organises routes and layouts. React
+components render interactive views. Tailwind utility classes support consistent spacing, typography and responsive layouts.
+Visualisation and interaction
+The landing hero includes a circular Candidate Intelligence visualisation. The team reports using Three.js with React Three Fiber
+and Drei for 3D rendering, and Framer Motion for interface transitions. A reported CSS reset conflict affected dashboard alignment
+and was corrected by adjusting global styling boundaries.
+State and data access
+The project notes identify React Query and React Context as state/data tools. Server state such as interview and candidate
+records should be fetched and cached through query hooks, while shared client state should be kept limited to values needed
+across components. Forms should validate user input before sending API requests.
+
+========== PAGE 47 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 10
+E.8 Backend Architecture
+NestJS modules
+The backend is reported to use NestJS 10. Modules should group related controllers, providers and services, for example
+authentication, interviews, resumes, classification, billing and notifications. Controllers handle HTTP transport; services contain
+business logic; providers encapsulate database and integration operations.
+Validation and persistence
+Zod schemas are identified in the project stack for input validation. Prisma 6 is used to communicate with PostgreSQL hosted
+through Supabase. Validation should occur at the API boundary and database constraints should protect important relationships
+and uniqueness rules.
+API response behaviour
+API responses should use consistent status codes and structured error messages. Sensitive details such as raw magic-link tokens,
+internal stack traces and private storage paths should not be returned to the client. The team reports that the mail service return
+status was corrected so delivery outcomes can be confirmed by calling code.
+
+========== PAGE 48 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 11
+E.9 Data Layer and Persistence
+Relational data
+PostgreSQL is used for structured platform data. Likely logical entities include recruiter accounts, candidate profiles, interviews,
+resume metadata, authentication tokens and notification records. The exact schema must be taken from the project's Prisma
+schema; this supplement does not invent field names or claim a specific migration history.
+Prisma responsibilities
+Prisma provides typed database access and supports transactions for related changes. For example, a resume metadata record
+and its storage operation may need coordinated handling. If file storage succeeds but metadata creation fails, or vice versa,
+compensating cleanup should be considered.
+Data integrity
+Foreign-key relationships, uniqueness constraints and status fields should prevent duplicate or orphaned records. Sensitive token
+values should be stored in a form appropriate to the threat model, ideally hashed where the application only needs to verify rather
+than retrieve the original token.
+
+========== PAGE 49 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 12
+E.10 Authentication and Authorisation
+Recruiter sign-in
+The platform supports recruiter signup and login, with JWT and Passport identified in the stack. Google OAuth is also listed. After
+successful authentication, the client accesses protected recruiter functionality using the application's configured session or token
+mechanism.
+Protected resources
+Backend endpoints must verify the caller's identity and role before returning recruiter dashboards, candidate records or interview
+controls. Client-side route protection improves user experience but is not a substitute for server-side guards.
+Session safety
+Tokens should be transmitted over HTTPS and stored using a strategy appropriate to the deployment. Refresh, expiry, logout and
+revocation behaviour should be documented from the actual implementation. The project should avoid logging credentials, OAuth
+codes or full bearer tokens.
+
+========== PAGE 50 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 13
+E.11 Candidate Magic-Link Authentication
+Purpose and lifecycle
+Magic-link access avoids requiring candidates to create a password. The platform sends a one-time link through Resend. The
+team states that the link expires after 15 minutes and is intended for one-time use.
+Verification sequence
+The candidate opens the link. The backend verifies that the token exists, has not expired and has not already been consumed. The
+backend then marks it used in a race-safe manner and establishes candidate access. A duplicate verification race condition was
+reported and fixed using a cached useRef mechanism in the client flow; backend atomicity should also be tested.
+Candidate-facing feedback
+The confirmation page should not expose the full destination email address. The team reports masking the destination email on the
+candidate confirmation screen. Expired, invalid and already-used links should produce understandable messages and a safe route
+to request a new link.
+
+========== PAGE 51 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 14
+E.12 Resume Upload and File Security
+Upload process
+The candidate portal supports resume upload. The application should validate allowed file types and size before accepting the file.
+The server should not trust the filename or MIME type supplied by the browser; file metadata and actual content should be
+checked as appropriate.
+Private storage
+The team reports using a private Supabase Storage bucket. This is important because resumes contain personal information. The
+application should use backend-authorised operations and signed URLs rather than exposing a public bucket URL.
+Failure handling
+The project notes report a storage verification script and automated tests, and mention rollback support. If a database operation
+fails after an object upload, the system should remove the orphaned object or record a recoverable pending state. Deletion should
+remove both the object and associated metadata in a controlled sequence.
+
+========== PAGE 52 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 15
+E.13 Signed URL Download and Deletion
+Signed downloads
+A signed URL grants temporary access to a private object. The backend should check that the requesting candidate or recruiter is
+authorised before generating the URL. The expiry should be limited to the shortest practical period and should not be stored as a
+permanent public link.
+Deletion behaviour
+Deleting a resume should verify ownership and permissions. The service should handle missing objects, repeated deletion
+requests and partial failures. The UI should confirm the action and update the candidate's resume state after the backend reports
+success.
+Audit and privacy
+Operational logs should record meaningful events without recording the file contents or signed URL secrets. Access to resumes
+should be limited to the people who need them for recruitment operations.
+
+========== PAGE 53 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 16
+E.14 Interview Management Lifecycle
+Recruiter workflow
+The reported flow begins with the recruiter creating an interview. The system creates or associates an access link, and the recruiter
+shares that link with the candidate. The candidate enters the portal, sees interview information and starts the interview when
+permitted.
+State transitions
+An interview lifecycle commonly needs clear states such as draft, scheduled, invited, accessed, started, completed or cancelled.
+The actual enum values must match the codebase. Invalid transitions should be rejected by backend business rules.
+Traceability
+Interview records should retain candidate association, relevant timestamps and status changes. The recruiter dashboard should
+make pending and completed work easy to distinguish without exposing candidate data to unrelated users.
+
+========== PAGE 54 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 17
+E.15 CVerify AI Classification Overview
+Purpose
+CVerify is the resume-classification component. The source report and team notes describe a DistilBERT-based classifier covering
+24 job families. Its purpose is to organise resume content into job-family categories and assist recruiter review.
+Model role
+DistilBERT is a compact transformer model derived from BERT. It can represent text context and classify resume text into
+predefined labels. The AI output is a prediction, not proof that a candidate is qualified or unsuitable. Human review remains
+necessary.
+Reported evaluation
+The original report records held-out accuracy of 86.35%, weighted F1 of 85.36% and macro F1 of 79.47%. These values are
+reproduced as reported in the supplied report; they are not recalculated in this supplement because raw evaluation data and model
+artefacts were not supplied here.
+
+========== PAGE 55 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 18
+E.16 Resume Text Extraction and OCR
+Text-based PDFs
+Text-based PDF resumes can be processed by extracting embedded text before classification. The extracted text should be
+normalised carefully while preserving meaningful sections such as skills, experience, education and certifications.
+Image-based PDFs
+The team lists Tesseract OCR for image PDFs. OCR converts page images into text, but recognition quality can vary with scan
+resolution, layout, language and document quality. Low-confidence extraction should be surfaced for review rather than treated as
+complete content.
+Pre-processing safeguards
+Pre-processing should remove obvious noise while avoiding deletion of relevant technical terms, dates or qualifications. The
+pipeline should handle empty files, encrypted PDFs, unsupported formats and unusually large documents with clear error states.
+
+========== PAGE 56 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 19
+E.17 AI Output Interpretation and Fairness
+Decision support, not automatic hiring
+Classification should support recruiter triage and not be used as the sole basis for rejection or selection. A job-family label does not
+measure communication, motivation, integrity or all role-specific skills.
+Evaluation considerations
+Accuracy can hide poor performance on less common classes. Macro F1 gives each class equal weight and is useful for assessing
+class imbalance. Weighted F1 reflects class frequency. Per-class precision, recall, confusion matrices and representative error
+review are valuable additions.
+Bias and governance
+Resume datasets can encode historical hiring bias. The team should review training data provenance, label quality, class balance
+and sensitive-feature leakage. Model updates should be versioned and evaluated before release.
+
+========== PAGE 57 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 20
+E.18 Background Jobs and BullMQ
+Why use a worker
+Background processing keeps long-running work away from latency-sensitive HTTP requests. The project notes identify BullMQ
+with Redis and a worker concurrency setting of two. Queue jobs may include classification, notifications or other asynchronous
+tasks, depending on the actual job registry.
+Job lifecycle
+A producer adds a job to the queue. A worker claims it, performs the task and reports completion or failure. Retry policy, backoff
+and job retention should be configured to avoid uncontrolled repeated work or unbounded queue growth.
+Concurrency and safety
+Concurrency two means the worker is configured to process up to two jobs concurrently in the described setup. It does not by itself
+establish throughput or production capacity. Jobs should be idempotent where possible so retries do not send duplicate emails or
+create duplicate records.
+
+========== PAGE 58 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 21
+E.19 Email and Notification Service
+Transactional email
+Resend is identified as the transactional email provider. Email is used for candidate magic-link delivery and may be used for other
+notifications if implemented. Templates should use clear subjects, concise instructions and the correct application domain.
+Delivery result handling
+The team reports fixing the mail service return status so delivery confirmation is propagated to calling code. The backend should
+distinguish accepted-for-delivery from guaranteed inbox delivery; provider acceptance does not prove that a recipient read the
+message.
+Failure and retry
+Invalid addresses, provider outages, rate limits and rejected messages should be handled explicitly. Retry logic should be bounded
+and should avoid generating multiple active magic links unless the product intentionally supports them.
+
+========== PAGE 59 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 22
+E.20 Billing and Notifications API Area
+API coverage
+The team reports that the 77 API tests include billing and notifications alongside authentication, interview management, resume
+storage/retrieval and CVerify classification. This page records the test areas named by the team; it does not claim billing features
+beyond the existence of those API test cases.
+Billing safeguards
+Where billing endpoints exist, they should validate amounts and currency server-side, verify provider events and avoid trusting
+client-calculated totals. Duplicate webhook delivery should not cause duplicate charges or entitlements.
+Notification safeguards
+Notification endpoints should validate recipient ownership, prevent unauthorised message triggering and avoid leaking private
+candidate information. Provider credentials must remain server-side.
+
+========== PAGE 60 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 23
+E.21 API Design and Validation Strategy
+Endpoint design
+API endpoints should use predictable resource names, HTTP methods and status codes. Authentication endpoints, interview
+resources, resume operations and classification requests should be separated into understandable modules.
+Schema validation
+Zod is listed in the stack. Schemas should validate required fields, string lengths, formats, allowed enums and cross-field rules.
+Validation errors should identify the invalid field without exposing internal implementation details.
+Contract testing
+API tests should verify both successful and rejected requests. Important cases include missing authentication, insufficient
+permissions, invalid identifiers, malformed payloads, duplicate operations and dependency failures.
+Documentation note: implementation details are based on the supplied report and team-provided project notes; verify against the current repository
+before external publication.
+
+========== PAGE 61 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 24
+E.22 Test Strategy and Test Pyramid
+Testing layers
+The project reports Playwright for end-to-end browser tests and Jest for API and worker tests. E2E tests validate complete user
+journeys. API tests validate backend contracts and business rules. Worker tests validate queue processing and failure behaviour.
+Test environment
+Tests should use isolated test data and controlled external dependencies. Email, storage and database operations should be
+configured so tests do not accidentally affect real candidates or production records.
+Test quality
+A passing test suite is evidence that the covered scenarios behaved as expected in the tested environment. It is not proof that all
+possible cases are defect-free. Coverage should be expanded based on risk, especially for authentication, file access and
+one-time token consumption.
+
+========== PAGE 62 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 25
+E.23 Reported Test Execution Summary
+End-to-end tests
+The team reports 6/6 E2E tests passing. Named coverage includes landing-page visualisation, recruiter authentication flow and
+candidate magic-link portal. The stated framework is Playwright.
+API and worker tests
+The team reports 77/77 API tests passing across authentication, interview management, resume storage/retrieval, CVerify
+classification, billing and notifications. The team also reports 11/11 worker tests passing for queue processing, background job
+execution and error handling, using Jest.
+Interpretation
+The three groups total 94 reported passing test cases (6 + 77 + 11). This arithmetic total is a summary of the supplied counts, not a
+separate test suite. No timestamped CI report, raw test output or coverage report was included with the source materials.
+
+========== PAGE 63 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 26
+E.24 E2E Test Case Catalogue
+E2E-01 — Landing page visualisation
+Objective: verify that the landing page loads and the Candidate Intelligence visualisation is visible. Expected result: page content
+renders without a blocking runtime error and the visualisation appears in its intended area.
+E2E-02 — Recruiter signup and login
+Objective: verify the recruiter authentication journey. Expected result: valid credentials or the configured signup flow lead to an
+authenticated recruiter session and an authorised dashboard view.
+E2E-03 — Protected dashboard
+Objective: verify access control. Expected result: an unauthenticated user cannot access protected recruiter content and an
+authenticated recruiter can load the dashboard.
+E2E-04 — Candidate magic link
+Objective: verify email-link entry. Expected result: the candidate receives a valid link and can open the candidate portal within the
+15-minute validity period.
+E2E-05 — Candidate portal actions
+Objective: verify the candidate-facing portal journey. Expected result: available resume and interview actions are displayed and
+successful actions update the UI.
+E2E-06 — Interview entry flow
+Objective: verify the path from interview access link to interview start. Expected result: a valid candidate reaches the appropriate
+interview entry screen and invalid or expired access is rejected.
+
+========== PAGE 64 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 27
+E.25 API Test Case Catalogue — Authentication
+Signup and login
+Tests should cover valid signup, duplicate account attempts, invalid email formats, missing required fields, incorrect credentials
+and successful login. The expected response should not disclose whether a password or account detail is correct beyond the
+application's chosen security policy.
+Magic-link issue and verification
+Tests should cover link generation, email-provider failure, token expiry at 15 minutes, successful first use, repeated use,
+malformed token and unknown token. Verification should be safe under concurrent requests.
+OAuth and protected routes
+Where Google OAuth is enabled, tests should cover successful callback handling and rejected or cancelled flows. Protected routes
+should reject missing, expired or invalid credentials.
+
+========== PAGE 65 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 28
+E.26 API Test Case Catalogue — Interviews
+Interview creation
+Verify that an authorised recruiter can create an interview with valid data. Verify that missing fields, invalid dates and malformed
+identifiers are rejected.
+Interview retrieval and updates
+Verify that only authorised users can retrieve or update an interview. Confirm that changes persist and the returned status matches
+the stored state.
+Candidate access
+Verify that the candidate access link maps to the correct candidate and interview. An invalid link must not expose interview data.
+Repeated or out-of-order lifecycle actions should be rejected or handled according to documented rules.
+
+========== PAGE 66 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 29
+E.27 API Test Case Catalogue — Resume Storage
+Upload
+Verify permitted PDF uploads, metadata persistence and association with the correct candidate. Negative cases should include
+unsupported type, empty file, excessive size and storage-provider failure.
+Download
+Verify that an authorised request returns a signed URL for the correct private object. Verify that unauthorised users cannot request
+another candidate's file.
+Delete and rollback
+Verify that deletion removes the file and metadata according to the intended transaction strategy. Simulate database and storage
+failures to confirm cleanup or a recoverable state.
+
+========== PAGE 67 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 30
+E.28 API Test Case Catalogue — CVerify
+Valid classification request
+Verify that a supported resume is accepted and the service returns a job-family prediction in the expected response structure.
+Input and processing failures
+Test empty extracted text, unreadable PDF, OCR failure, unsupported format and AI-service timeout. The API should return a
+controlled error and should not create misleading classification output.
+Output handling
+Verify that class labels belong to the configured set of 24 job families. If confidence scores are exposed, the UI should label them
+clearly and avoid implying certainty.
+
+========== PAGE 68 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 31
+E.29 Worker Test Case Catalogue
+Queue processing
+Verify that a valid job is enqueued, claimed by a worker and marked completed after successful processing. Confirm that job
+payloads contain the identifiers required by the worker.
+Failure and retry
+Simulate a transient dependency error and verify configured retry behaviour. Simulate a permanent invalid payload and verify that
+it does not retry indefinitely.
+Concurrency and idempotency
+Verify the configured concurrency of two in the test environment. Submit duplicate jobs where relevant and confirm that side effects
+such as emails or record creation are not duplicated unexpectedly.
+
+========== PAGE 69 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 32
+E.30 Defect and Fix Record
+Magic-link duplicate verification race
+Reported issue: a candidate could trigger duplicate verification behaviour under repeated or closely timed interaction. Reported fix:
+cached useRef handling in the client flow. Regression tests should also validate server-side atomic token consumption because a
+client-side guard alone cannot prevent requests from multiple devices.
+Global CSS reset and dashboard alignment
+Reported issue: global CSS reset rules caused dashboard alignment conflicts. Reported fix: adjustment of global styling
+boundaries. Regression checks should cover dashboard layout, navigation, forms and responsive breakpoints.
+Mail delivery status propagation
+Reported issue: the mail service return status did not reliably communicate delivery outcome to the caller. Reported fix:
+return-status handling was corrected. Tests should verify success and provider failure paths.
+
+========== PAGE 70 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 33
+E.31 Additional Defect Record and Regression
+Masked destination email
+Reported issue: candidate confirmation screen exposed an overly complete email destination. Reported fix: destination email is
+masked. Regression testing should check common address formats and ensure that the masking does not reveal the full local part.
+Storage verification
+Reported work: a storage verification script and automated tests were added. The script should be run against a non-production
+bucket or test environment and should confirm private access, signed download and deletion behaviour.
+Regression discipline
+Every fixed defect should have a reproducible test or documented manual verification. Fixes should be retested after changes to
+shared authentication, styling, storage or notification code.
+
+========== PAGE 71 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 34
+E.32 Security Threats and Mitigations
+Account and token threats
+Threats include credential theft, token leakage, brute-force attempts and replay of magic links. Mitigations include rate limiting,
+short token lifetime, one-time use, secure transport, secret handling and careful log redaction.
+File threats
+Resume uploads may contain malicious or malformed content. Validate type and size, consider malware scanning where available,
+store files privately, and enforce ownership checks for every download or deletion.
+Application threats
+Common web risks include broken access control, injection, cross-site scripting, cross-site request forgery and insecure
+configuration. Use framework protections, strict validation, secure headers, least privilege and dependency updates.
+
+========== PAGE 72 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 35
+E.33 Privacy and Data Governance
+Personal data
+Resumes and candidate records contain personal information. Collect only information needed for the recruitment workflow, restrict
+access and define a retention policy. Candidate-facing notices should explain the purpose of data collection.
+Access and retention
+Recruiter access should be limited to assigned or authorised records. Old resumes and interview records should be retained only
+according to organisational and legal requirements. Deletion requests should be handled through a documented process.
+AI transparency
+Candidates and recruiters should understand that AI classification is assistive. Model output may be wrong, and a human should
+review the underlying resume before taking a consequential action.
+Documentation note: implementation details are based on the supplied report and team-provided project notes; verify against the current repository
+before external publication.
+
+========== PAGE 73 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 36
+E.34 Deployment and Environment Configuration
+Environment separation
+Development, test and production environments should use separate databases, storage buckets, Redis instances and email
+credentials. Test data should not be mixed with real candidate data.
+Configuration management
+Frontend and backend URLs, database connection strings, Redis connection settings, JWT secrets, OAuth credentials, Resend
+API keys and Supabase keys should be supplied through environment configuration. Secret values must not be committed to the
+repository.
+Containerisation status
+The supplied team note says Docker was not available in the current sandbox and asks whether it was done in the project.
+Therefore this supplement does not claim Docker-based deployment as verified. The final repository or deployment configuration
+should be checked before adding Dockerfiles or container orchestration to the implemented-features list.
+
+========== PAGE 74 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 37
+E.35 Observability and Maintenance
+Application logging
+Logs should capture request identifiers, job identifiers and error categories while excluding passwords, tokens, private resume
+content and signed URLs. Structured logs help correlate frontend actions with backend requests and worker outcomes.
+Health checks
+Useful operational checks include database connectivity, Redis availability, storage access, email-provider configuration and
+worker queue health. A service being reachable does not necessarily mean all dependent functions are healthy.
+Maintenance
+Dependencies should be updated deliberately, with automated tests run before release. Database migrations should be reviewed
+and backed up. Model and classifier versions should be tracked so that classification changes can be explained.
+
+========== PAGE 75 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 38
+E.36 User Manual — Recruiter
+Accessing the dashboard
+Open the application URL in a supported browser. Use the recruiter signup or login route. If Google OAuth is configured, select the
+Google sign-in option and complete the provider flow. After successful authentication, open the protected recruiter dashboard.
+Creating an interview
+Use the interview-management area to create an interview and enter the required details. Review the information before saving.
+Generate or retrieve the candidate access link using the platform's available action and share it through the approved
+communication channel.
+Reviewing candidates
+Open the relevant candidate record and review the resume and classification output. Treat the predicted job family as a sorting aid.
+Review the actual resume and interview evidence before making any hiring decision.
+
+========== PAGE 76 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 39
+E.37 User Manual — Candidate
+Opening the magic link
+Open the email from the platform and follow the candidate access link promptly. The link is intended to expire after 15 minutes and
+to be used once. If it has expired or has already been used, request a fresh link through the available workflow.
+Managing a resume
+Use the candidate portal's resume section to upload a supported PDF. Wait for confirmation before closing the page. Use the
+download action only when needed and the delete action only after confirming the correct file.
+Accessing an interview
+Review the interview information displayed in the portal. When the interview is available, use the start action. If access is denied or
+the link is invalid, return to the recruiter-provided communication and request assistance.
+
+========== PAGE 77 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 40
+E.38 Troubleshooting and Support
+Magic link not received
+Check the email address entered, spam or junk folders and whether the email provider accepted the request. If the link has
+expired, request a new one. The system operator should check provider status without exposing the token in logs.
+Resume upload or download failure
+Check file format and size, network connectivity and whether the candidate is signed in through a valid link. The operator should
+inspect storage permissions and backend errors in a test environment before retrying production operations.
+Dashboard or interview page issue
+Refresh the page, sign in again if the session expired and retry the action. If the issue continues, record the time, route and
+non-sensitive error message for the development team. Do not send passwords, access tokens or private resume files in support
+messages.
+
+========== PAGE 78 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 41
+E.39 Limitations and Risks
+Model limitations
+Resume classification depends on extraction quality, training data, label definitions and the distribution of job families. A model
+may misclassify unusual career paths, non-standard resumes or profiles with mixed skill sets.
+Integration limitations
+Email, storage, database and Redis services depend on external configuration and network availability. Provider outages can
+affect candidate access, resume handling or background processing.
+Evidence limitations
+The source materials include a report and team-reported test counts but do not include raw test logs, code coverage, production
+monitoring data or an independently reproducible model evaluation package. Claims are therefore limited to what the supplied
+materials state.
+
+========== PAGE 79 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 42
+E.40 Future Enhancements
+Recruiter experience
+Potential enhancements include advanced search and filters, interview calendar integration, configurable evaluation rubrics,
+candidate comparison views and exportable reports. These should be prioritised based on recruiter feedback.
+AI quality
+Future work may include per-class evaluation, confusion-matrix review, explainable evidence highlighting, model version tracking,
+multilingual resume support and bias audits. Any change to the model should be evaluated against a held-out dataset.
+Reliability and security
+Potential improvements include stronger rate limiting, audit trails, automated dependency scanning, file malware scanning, queue
+dashboards, backup/restore drills and documented retention controls. Containerisation can be considered if it is actually adopted
+and validated by the team.
+
+========== PAGE 80 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 43
+E.41 Acceptance Criteria and Completion Review
+Functional acceptance
+The described platform is considered functionally complete for the listed scope when recruiter authentication, candidate magic-link
+access, candidate portal actions, interview creation/access and resume operations behave according to their requirements.
+Quality acceptance
+The team-reported baseline is 6/6 E2E, 77/77 API and 11/11 worker tests passing. Acceptance should also require review of
+negative cases, access control, token expiry and storage privacy, not only successful paths.
+Project review
+Before final submission, the team should compare this report against the latest repository and deployed application. Confirm
+package versions, route names, database schema, exact test names and Docker status. Update any implementation detail that
+differs from the actual code.
+
+========== PAGE 81 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 44
+E.42 Team Contribution and Handover Notes
+Team members
+The source report identifies Aryan Sharma (23BCS12698), Piyush Sharma (23BCS13756), Taniya (23BCS12605), Rishab Bahri
+(23BCS12848) and Thanda Shiva Kumar. No UID for Thanda Shiva Kumar was present in the supplied report, so none is invented
+here.
+Contribution evidence
+Team contribution should be described using verified work records such as repository commits, issue assignments, pull requests,
+test ownership and review notes. The project notes identify system testing and E2E testing as a focus area, along with the reported
+bug fixes and test outcomes.
+Handover
+A handover package should include the repository URL, environment variable template without secrets, database migration
+instructions, test commands, deployment notes, model artefact/version information and an owner for each external service.
+
+========== PAGE 82 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 45
+E.43 Sample Test Execution Record
+Record fields
+A reproducible test record should include test ID, feature, preconditions, test data identifier, steps, expected result, actual result,
+status, execution date, environment and defect reference. Sensitive candidate information should not be copied into test evidence.
+Example record — magic-link expiry
+Test ID: AUTH-ML-EXP-01. Preconditions: candidate test account exists and email service is configured. Steps: request a link,
+wait beyond 15 minutes, open the link. Expected result: backend rejects the expired token and the UI offers a safe next step.
+Actual result and execution timestamp should be filled from a real run.
+Example record — private resume access
+Test ID: RES-SEC-GET-01. Preconditions: two separate candidate test accounts and one uploaded PDF. Steps: authenticate as
+candidate B and attempt to access candidate A's file. Expected result: request is denied and no signed URL is issued. Record the
+actual response from the test environment.
+Documentation note: implementation details are based on the supplied report and team-provided project notes; verify against the current repository
+before external publication.
+
+========== PAGE 83 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 46
+E.44 Glossary and Abbreviations
+Application terms
+API: Application Programming Interface. E2E: End-to-End. UI: User Interface. OAuth: Open Authorisation. JWT: JSON Web
+Token. OCR: Optical Character Recognition. URL: Uniform Resource Locator.
+Platform terms
+Prisma: database ORM used by the backend. PostgreSQL: relational database. Redis: in-memory data store used here for queue
+coordination. BullMQ: Redis-backed job queue. Supabase Storage: object storage service used for private resume files.
+AI and testing terms
+DistilBERT: compact transformer language model. CVerify: project resume classification component. Precision: fraction of
+predicted positives that are correct. Recall: fraction of actual positives found. F1: harmonic mean of precision and recall.
+Playwright: browser automation framework. Jest: JavaScript testing framework.
+
+========== PAGE 84 ==========
+CHANDIGARH UNIVERSITY | AI INTERVIEW ASSESSMENT PLATFORM
+Supplement page 47
+E.45 Final Technical Summary
+Implemented platform summary
+The team describes a full-stack AI Hiring Intelligence Platform that supports recruiter authentication, candidate passwordless
+access, candidate resume operations, interview management, AI-assisted resume classification and background processing. The
+current reported stack includes Next.js, React, NestJS, Prisma, PostgreSQL/Supabase, Redis, BullMQ, Resend, DistilBERT,
+PyTorch, Tesseract, Playwright and Jest.
+Quality summary
+The team reports 6/6 E2E tests, 77/77 API tests and 11/11 worker tests passing. The original report records CVerify held-out
+accuracy 86.35%, weighted F1 85.36% and macro F1 79.47%. These are reported project results and should be accompanied by
+raw evidence when available.
+Closing note
+This supplement is intended to make the submitted report more detailed and operationally useful while retaining the original report
+pages. The final repository review remains the authoritative step for resolving any implementation detail that is not confirmed by the
+supplied project notes.
